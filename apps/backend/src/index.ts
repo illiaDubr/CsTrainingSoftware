@@ -28,7 +28,7 @@ app.use(errorHandler);
 
 const start = async () => {
   await testConnection();
-  app.listen(config.port, () => {
+  app.listen(config.port, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${config.port}`);
   });
 };
