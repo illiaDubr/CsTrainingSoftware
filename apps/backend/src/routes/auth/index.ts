@@ -1,17 +1,14 @@
 import { Router } from 'express';
+import {
+  registerController,
+  loginController,
+  refreshController,
+} from '../../controllers/auth.controller';
 
 const router = Router();
 
-router.post('/register', (_req, res) => {
-  res.json({ message: 'register — todo' });
-});
-
-router.post('/login', (_req, res) => {
-  res.json({ message: 'login — todo' });
-});
-
-router.post('/refresh', (_req, res) => {
-  res.json({ message: 'refresh — todo' });
-});
+router.post('/register', registerController);
+router.post('/login', loginController);
+router.post('/refresh', refreshController);
 
 export default router;

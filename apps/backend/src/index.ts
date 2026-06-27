@@ -9,6 +9,7 @@ import { errorHandler } from './middlewares/errorHandler';
 import { notFound } from './middlewares/notFound';
 import authRoutes from './routes/auth';
 
+
 const app = express();
 
 app.use(helmet());
