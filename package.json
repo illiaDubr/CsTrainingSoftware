@@ -1,0 +1,22 @@
+{
+  "name": "cs-training",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  " workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "backend": "npm run start --workspace=apps/backend",
+    "mobile": "npm run start --workspace=apps/mobile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/illiaDubr/CsTrainingSoftware.git"
+  },
+  "keywords": [],
+  "author": "Burry",
+  "license": "ISC",
+  "type": "commonjs"
+}

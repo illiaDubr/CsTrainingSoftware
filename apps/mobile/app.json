@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "CS Training",
+    "slug": "cs-training",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cstraining.app"
+    },
+    "android": {
+      "package": "com.cstraining.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "scheme": "cs-training",
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ]
+  }
+}
