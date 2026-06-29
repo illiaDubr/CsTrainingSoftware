@@ -10,7 +10,7 @@ import { notFound } from './middlewares/notFound';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import groupRoutes from './routes/groups';
-
+import taskRoutes from './routes/tasks';
 
 
 const app = express();
@@ -29,6 +29,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
 app.use('/api/groups', groupRoutes);
+
+app.use('/api/tasks', taskRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
