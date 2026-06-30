@@ -6,6 +6,7 @@ import {
   getAllUsersController,
   getUserByIdController,
   updateUserController,
+  searchPlayersController,
 } from '../../controllers/users/users.controller';
 
 const router = Router();
@@ -24,5 +25,13 @@ router.get('/:id', authorize(UserRole.ADMIN), getUserByIdController);
 
 // Обновить пользователя — admin
 router.patch('/:id', authorize(UserRole.ADMIN), updateUserController);
+
+router.get('/me', getMeController);
+
+router.get('/search/players', authorize(UserRole.COACH), searchPlayersController);
+
+router.get('/', authorize(UserRole.ADMIN), getAllUsersController);
+
+router.get('/:id', authorize(UserRole.ADMIN), getUserByIdController);
 
 export default router;

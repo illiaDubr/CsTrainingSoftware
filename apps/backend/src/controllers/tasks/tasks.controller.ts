@@ -11,6 +11,13 @@ export const getTasksController = async (req: AuthRequest, res: Response, next: 
   } catch (err) { next(err); }
 };
 
+export const getTaskByIdController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const task = await tasksService.getTaskById(Number(req.params.id), req.user!.userId, req.user!.role);
+    res.json({ success: true, data: task });
+  } catch (err) { next(err); }
+};
+
 export const createTaskController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { group_id, title, description, priority, due_date } = req.body;
