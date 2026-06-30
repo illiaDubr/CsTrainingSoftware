@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../../middlewares/auth';
 import { UserRole } from '../../models/user.model';
 import {
   getTasksController,
+  getTaskByIdController,
   createTaskController,
   updateTaskController,
   deleteTaskController,
@@ -16,6 +17,7 @@ router.use(authenticate);
 // Задачи группы — все роли
 router.get('/', getTasksController);
 
+router.get('/:id', getTaskByIdController);
 // Создать задачу — только coach
 router.post('/', authorize(UserRole.COACH), createTaskController);
 

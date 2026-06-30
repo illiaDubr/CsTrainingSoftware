@@ -27,6 +27,14 @@ export const getUserById = async (id: number) => {
   return user;
 };
 
+export const searchPlayers = async (query: string) => {
+  return db('users')
+    .where({ role: 'player' })
+    .andWhere('username', 'ilike', `%${query}%`)
+    .select('id', 'username', 'email', 'avatar_url')
+    .limit(20);
+};
+
 export const updateUser = async (id: number, dto: { username?: string; is_active?: boolean }) => {
   const [user] = await db('users')
     .where({ id })

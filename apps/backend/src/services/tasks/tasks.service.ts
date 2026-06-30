@@ -15,6 +15,9 @@ export const getTasksByGroup = async (groupId: number, userId: number, role: str
     }));
   }
 
+
+  
+
   if (role === 'coach') {
     const progress = await db('task_progress')
       .join('users', 'task_progress.player_id', 'users.id')
@@ -28,6 +31,26 @@ export const getTasksByGroup = async (groupId: number, userId: number, role: str
   }
 
   return tasks;
+};
+
+export const getTaskById = async (taskId: number, userId: number, role: string) => {
+  const task = await db('tasks').where({ id: taskId }).first();
+  if (!task) throw new AppError('Task not found', 404);
+
+  if (role === 'player') {
+    const progress = await db('task_progress').where({ task_id: taskId, player_id: userId }).first();
+    return { ...task, progress: progress || { status: 'pending' } };
+  }
+
+  if (role === 'coach') {
+    const progress = await db('task_progress')
+      .join('users', 'task_progress.player_id', 'users.id')
+      .where({ task_id: taskId })
+      .select('task_progress.*', 'users.username');
+    return { ...task, progress };
+  }
+
+  return task;
 };
 
 export const createTask = async (coachId: number, dto: {
