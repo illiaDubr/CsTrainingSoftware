@@ -29,3 +29,29 @@ export interface Task {
   created_at: string;
   progress: TaskProgress;
 }
+
+
+export interface Training {
+  id: number;
+  group_id: number;
+  coach_id: number;
+  title: string;
+  description?: string;
+  scheduled_at: string;
+  duration_minutes?: number;
+  created_at: string;
+}
+
+export type MaterialType = 'video' | 'document' | 'link' | 'image';
+
+export interface Material {
+  id: number;
+  group_id: number;
+  coach_id: number;
+  title: string;
+  description?: string;
+  file_url?: string;
+  external_url?: string;
+  type: MaterialType;
+  created_at: string;
+}

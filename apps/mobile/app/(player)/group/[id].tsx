@@ -1,22 +1,37 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { tasksService } from '../../../src/services/tasksService';
+import { trainingsService } from '../../../src/services/trainingsService';
+import { materialsService } from '../../../src/services/materialsService';
 import { TaskCard } from '../../../src/components/cards/TaskCard';
-import { Task } from '../../../src/types';
+import { TrainingCard } from '../../../src/components/cards/TrainingCard';
+import { MaterialCard } from '../../../src/components/cards/MaterialCard';
+import { Task, Training, Material } from '../../../src/types';
 
-export default function GroupTasksScreen() {
+type Tab = 'tasks' | 'trainings' | 'materials';
+
+export default function PlayerGroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [trainings, setTrainings] = useState<Training[]>([]);
+  const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState<Tab>('tasks');
 
-  const loadTasks = async () => {
+  const loadData = async () => {
     try {
-      const data = await tasksService.getTasksByGroup(Number(id));
-      setTasks(data);
+      const [taskList, trainingList, materialList] = await Promise.all([
+        tasksService.getTasksByGroup(Number(id)),
+        trainingsService.getTrainingsByGroup(Number(id)),
+        materialsService.getMaterialsByGroup(Number(id)),
+      ]);
+      setTasks(taskList);
+      setTrainings(trainingList);
+      setMaterials(materialList);
     } catch {
       // тихо
     } finally {
@@ -27,13 +42,13 @@ export default function GroupTasksScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadTasks();
+      loadData();
     }, [id])
   );
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadTasks();
+    loadData();
   };
 
   if (loading) {
@@ -44,32 +59,80 @@ export default function GroupTasksScreen() {
     );
   }
 
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'tasks', label: `Задачи (${tasks.length})` },
+    { key: 'trainings', label: `Тренировки (${trainings.length})` },
+    { key: 'materials', label: `Материалы (${materials.length})` },
+  ];
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.back}>‹ Назад</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Задачи группы</Text>
-      </View>
+      <TouchableOpacity onPress={() => router.back()}>
+        <Text style={styles.back}>‹ Назад</Text>
+      </TouchableOpacity>
 
-      {tasks.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>Пока нет задач</Text>
+      <Text style={styles.title}>Группа</Text>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll}>
+        <View style={styles.tabs}>
+          {TABS.map((t) => (
+            <TouchableOpacity
+              key={t.key}
+              style={[styles.tab, tab === t.key && styles.tabActive]}
+              onPress={() => setTab(t.key)}
+            >
+              <Text style={[styles.tabText, tab === t.key && styles.tabTextActive]}>{t.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
-      ) : (
-        <FlatList
-          data={tasks}
-          keyExtractor={(item) => String(item.id)}
-          contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
-          renderItem={({ item }) => (
-            <TaskCard
-              task={item}
-              onPress={() => router.push(`/(player)/task/${item.id}`)}
-            />
-          )}
-        />
+      </ScrollView>
+
+      {tab === 'tasks' && (
+        tasks.length === 0 ? (
+          <View style={styles.empty}><Text style={styles.emptyText}>Пока нет задач</Text></View>
+        ) : (
+          <FlatList
+            data={tasks}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={styles.list}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
+            renderItem={({ item }) => (
+              <TaskCard task={item} onPress={() => router.push(`/(player)/task/${item.id}`)} />
+            )}
+          />
+        )
+      )}
+
+      {tab === 'trainings' && (
+        trainings.length === 0 ? (
+          <View style={styles.empty}><Text style={styles.emptyText}>Пока нет тренировок</Text></View>
+        ) : (
+          <FlatList
+            data={trainings}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={styles.list}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
+            renderItem={({ item }) => (
+              <TrainingCard training={item} onDelete={() => {}} />
+            )}
+          />
+        )
+      )}
+
+      {tab === 'materials' && (
+        materials.length === 0 ? (
+          <View style={styles.empty}><Text style={styles.emptyText}>Пока нет материалов</Text></View>
+        ) : (
+          <FlatList
+            data={materials}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={styles.list}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
+            renderItem={({ item }) => (
+              <MaterialCard material={item} />
+            )}
+          />
+        )
       )}
     </View>
   );
@@ -78,9 +141,14 @@ export default function GroupTasksScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f1117', paddingTop: 60, paddingHorizontal: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
-  header: { marginBottom: 20 },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 12 },
-  title: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
+  tabsScroll: { flexGrow: 0, marginBottom: 20 },
+  tabs: { flexDirection: 'row', gap: 10 },
+  tab: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#1a1d2e', borderWidth: 1, borderColor: '#2a2d3e' },
+  tabActive: { borderColor: '#f59e0b', backgroundColor: '#2a1f00' },
+  tabText: { color: '#888', fontSize: 12, fontWeight: '600' },
+  tabTextActive: { color: '#f59e0b' },
   list: { paddingBottom: 40 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: '#888', fontSize: 15 },

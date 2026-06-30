@@ -135,17 +135,55 @@ materials      — id, group_id, coach_id, title, description, file_url, externa
 }
 ```
 
-### Планируется
+### Users — `/api/users`
 
-```
-GET/PATCH       /api/users/:id
-GET/POST/PATCH  /api/groups
-POST/DELETE     /api/groups/:id/members
-GET/POST/PATCH  /api/tasks
-PATCH           /api/tasks/:id/progress
-GET/POST/PATCH  /api/trainings
-GET/POST/PATCH  /api/materials
-```
+| Метод | Путь | Доступ | Описание |
+|---|---|---|---|
+| GET | `/me` | любая роль | Свой профиль |
+| GET | `/search/players?q=` | coach | Поиск игроков по нику (для добавления в группу) |
+| GET | `/` | admin | Список всех пользователей |
+| GET | `/:id` | admin | Пользователь по id |
+| PATCH | `/:id` | admin | Обновить пользователя |
+
+### Groups — `/api/groups`
+
+| Метод | Путь | Доступ | Описание |
+|---|---|---|---|
+| GET | `/` | любая роль | Свои группы (по роли) |
+| GET | `/:id` | любая роль | Группа с участниками |
+| POST | `/` | coach | Создать группу |
+| PATCH | `/:id` | coach | Обновить группу |
+| POST | `/:id/members` | coach | Добавить игрока (`{ playerId }`) |
+| DELETE | `/:id/members/:playerId` | coach | Удалить игрока |
+
+### Tasks — `/api/tasks`
+
+| Метод | Путь | Доступ | Описание |
+|---|---|---|---|
+| GET | `/?groupId=` | любая роль | Задачи группы (+ прогресс) |
+| GET | `/:id` | любая роль | Задача по id (+ прогресс: свой для player, всех для coach) |
+| POST | `/` | coach | Создать задачу (авто-создаёт прогресс для всех игроков группы) |
+| PATCH | `/:id` | coach | Обновить задачу |
+| DELETE | `/:id` | coach | Удалить задачу |
+| PATCH | `/:id/progress` | player | Обновить свой статус (`{ status, note }`) |
+
+### Trainings — `/api/trainings`
+
+| Метод | Путь | Доступ | Описание |
+|---|---|---|---|
+| GET | `/?groupId=` | любая роль | Тренировки группы |
+| POST | `/` | coach | Создать тренировку |
+| PATCH | `/:id` | coach | Обновить |
+| DELETE | `/:id` | coach | Удалить |
+
+### Materials — `/api/materials`
+
+| Метод | Путь | Доступ | Описание |
+|---|---|---|---|
+| GET | `/?groupId=` | любая роль | Материалы группы |
+| POST | `/` | coach | Добавить материал (`type`: video / document / link / image) |
+| PATCH | `/:id` | coach | Обновить |
+| DELETE | `/:id` | coach | Удалить |
 
 ---
 
@@ -214,17 +252,19 @@ JWT_REFRESH_SECRET=<другая длинная случайная строка>
 - [x] Миграции — полная схема БД
 - [x] Auth — register, login, refresh
 - [x] JWT middleware — authenticate + authorize
-- [ ] Users — профиль, управление (admin)
-- [ ] Groups — CRUD, управление участниками
-- [ ] Tasks — CRUD, прогресс игроков
-- [ ] Trainings — расписание тренировок
-- [ ] Materials — обучающие материалы
+- [x] Users — профиль, управление (admin)
+- [x] Groups — CRUD, управление участниками
+- [x] Tasks — CRUD, прогресс игроков
+- [x] Trainings — расписание тренировок
+- [x] Materials — обучающие материалы
 
 ### Мобильное приложение
-- [x] Структура проекта (Expo)
+- [x] Структура проекта (Expo SDK 54 + expo-router)
 - [x] API клиент с JWT interceptors
-- [ ] Экраны авторизации
-- [ ] Навигация по ролям
-- [ ] Экраны игрока
-- [ ] Экраны тренера
-- [ ] Экраны администратора
+- [x] Экраны авторизации (login, register)
+- [x] Навигация по ролям (auto-redirect через `/users/me`)
+- [x] Экраны игрока — список групп, список задач, детали задачи, обновление прогресса/заметки
+- [x] Экраны тренера — список групп, создание группы, вкладки группы (задачи/игроки), создание задачи, поиск и добавление игрока, прогресс по задаче, удаление задачи
+- [ ] Экраны администратора — управление пользователями
+- [ ] Экраны тренера — тренировки (Trainings)
+- [ ] Экраны тренера — материалы (Materials)
