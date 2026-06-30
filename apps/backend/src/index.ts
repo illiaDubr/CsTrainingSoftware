@@ -13,6 +13,8 @@ import groupRoutes from './routes/groups';
 import taskRoutes from './routes/tasks';
 import trainingRoutes from './routes/trainings';
 import materialRoutes from './routes/materials';
+import routineRoutes from './routes/routines';
+import statsRoutes from './routes/stats';
 
 const app = express();
 
@@ -34,7 +36,12 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/tasks', taskRoutes);
 
 app.use('/api/trainings', trainingRoutes);
+
 app.use('/api/materials', materialRoutes);
+
+app.use('/api/routines', routineRoutes);
+
+app.use('/api/stats', statsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

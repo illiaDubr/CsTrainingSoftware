@@ -1,0 +1,131 @@
+import { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { trainingsService } from '../../src/services/trainingsService';
+
+export default function CreateTrainingScreen() {
+  const router = useRouter();
+  const { groupId } = useLocalSearchParams<{ groupId: string }>();
+
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState(''); // формат ДД.ММ.ГГГГ
+  const [time, setTime] = useState(''); // формат ЧЧ:ММ
+  const [duration, setDuration] = useState('60');
+  const [loading, setLoading] = useState(false);
+
+  const handleCreate = async () => {
+    if (!title.trim() || !date.trim() || !time.trim()) {
+      Alert.alert('Ошибка', 'Заполни название, дату и время');
+      return;
+    }
+
+    // Парсим ДД.ММ.ГГГГ и ЧЧ:ММ в ISO
+    const [day, month, year] = date.split('.').map(Number);
+    const [hours, minutes] = time.split(':').map(Number);
+
+    if (!day || !month || !year || isNaN(hours) || isNaN(minutes)) {
+      Alert.alert('Ошибка', 'Проверь формат даты (ДД.ММ.ГГГГ) и времени (ЧЧ:ММ)');
+      return;
+    }
+
+    const scheduledAt = new Date(year, month - 1, day, hours, minutes).toISOString();
+
+    setLoading(true);
+    try {
+      await trainingsService.createTraining({
+        group_id: Number(groupId),
+        title: title.trim(),
+        description: description.trim() || undefined,
+        scheduled_at: scheduledAt,
+        duration_minutes: Number(duration) || undefined,
+      });
+      router.back();
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось создать тренировку');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={styles.inner}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.back}>‹ Назад</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.title}>Новая тренировка</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Название тренировки"
+          placeholderTextColor="#555"
+          value={title}
+          onChangeText={setTitle}
+        />
+
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          placeholder="Описание (необязательно)"
+          placeholderTextColor="#555"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          numberOfLines={3}
+        />
+
+        <View style={styles.row}>
+          <TextInput
+            style={[styles.input, styles.flexInput]}
+            placeholder="ДД.ММ.ГГГГ"
+            placeholderTextColor="#555"
+            value={date}
+            onChangeText={setDate}
+            keyboardType="numbers-and-punctuation"
+          />
+          <TextInput
+            style={[styles.input, styles.flexInput]}
+            placeholder="ЧЧ:ММ"
+            placeholderTextColor="#555"
+            value={time}
+            onChangeText={setTime}
+            keyboardType="numbers-and-punctuation"
+          />
+        </View>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Длительность в минутах"
+          placeholderTextColor="#555"
+          value={duration}
+          onChangeText={setDuration}
+          keyboardType="number-pad"
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleCreate} disabled={loading}>
+          {loading
+            ? <ActivityIndicator color="#000" />
+            : <Text style={styles.buttonText}>Создать тренировку</Text>
+          }
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0f1117' },
+  inner: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 60 },
+  back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
+  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 28 },
+  input: {
+    backgroundColor: '#1a1d2e', borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 10,
+    paddingHorizontal: 16, paddingVertical: 14, color: '#fff', fontSize: 15, marginBottom: 14,
+  },
+  textArea: { minHeight: 80, textAlignVertical: 'top' },
+  row: { flexDirection: 'row', gap: 12 },
+  flexInput: { flex: 1 },
+  button: { backgroundColor: '#f59e0b', borderRadius: 10, paddingVertical: 15, alignItems: 'center', marginTop: 8 },
+  buttonText: { color: '#000', fontWeight: '700', fontSize: 16 },
+});
