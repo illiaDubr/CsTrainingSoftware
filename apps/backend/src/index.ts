@@ -41,15 +41,6 @@ app.use(errorHandler);
 
 const start = async () => {
   await testConnection();
-
-if (process.env.NODE_ENV === 'production') {
-  console.log('🔄 Running migrations...');
-  await db.migrate.latest({
-    directory: './dist/migrations',
-  });
-  console.log('✅ Migrations done');
-}
-
   app.listen(config.port, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${config.port}`);
   });
