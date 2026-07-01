@@ -253,15 +253,20 @@ export default function CoachGroupScreen() {
             contentContainerStyle={styles.list}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
             renderItem={({ item }) => (
-              <View style={styles.memberCard}>
+              <TouchableOpacity
+                style={styles.memberCard}
+                onPress={() => router.push(`/(coach)/player/${item.id}?username=${item.username}&email=${item.email}`)}
+                activeOpacity={0.7}
+             >
                 <View style={styles.memberAvatar}>
                   <Text style={styles.memberAvatarText}>{item.username[0].toUpperCase()}</Text>
                 </View>
-                <View>
+               <View style={{ flex: 1 }}>
                   <Text style={styles.memberName}>{item.username}</Text>
-                  <Text style={styles.memberEmail}>{item.email}</Text>
+      <            Text style={styles.memberEmail}>{item.email}</Text>
                 </View>
-              </View>
+                <Text style={{ color: '#555', fontSize: 20 }}>›</Text>
+              </TouchableOpacity>
             )}
           />
         )

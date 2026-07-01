@@ -1,24 +1,28 @@
 import knex from 'knex';
-import { config  } from './app';
-
+import { config } from './app';
 
 export const db = knex({
-    client: 'pg',
-    connection: {
+  client: 'pg',
+  connection: process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      }
+    : {
         host: config.db.host,
         port: config.db.port,
         database: config.db.name,
         user: config.db.user,
         password: config.db.password,
-    },
-    pool: { min: 2, max: 10 },
+      },
+  pool: { min: 2, max: 10 },
 });
 
 export const testConnection = async () => {
-    try {
-        await db.raw('SELECT 1');
-        console.log('Databese connected!');
-    } catch (err) {
+  try {
+    await db.raw('SELECT 1');
+    console.log('✅ Database connected');
+  } catch (err) {
     console.error('❌ Database connection failed:', err);
     process.exit(1);
   }
