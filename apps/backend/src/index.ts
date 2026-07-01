@@ -48,6 +48,17 @@ app.use(errorHandler);
 
 const start = async () => {
   await testConnection();
+
+  // Автоматически применяем миграции при старте
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔄 Running migrations...');
+    await db.migrate.latest({
+      directory: './migrations',
+      extension: 'js', // в production используем скомпилированные JS
+    });
+    console.log('✅ Migrations done');
+  }
+
   app.listen(config.port, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${config.port}`);
   });
