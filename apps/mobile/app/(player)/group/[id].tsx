@@ -1,34 +1,40 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, ScrollView, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { tasksService } from '../../../src/services/tasksService';
 import { trainingsService } from '../../../src/services/trainingsService';
 import { materialsService } from '../../../src/services/materialsService';
+import { routinesService } from '../../../src/services/routinesService';
 import { TaskCard } from '../../../src/components/cards/TaskCard';
 import { TrainingCard } from '../../../src/components/cards/TrainingCard';
 import { MaterialCard } from '../../../src/components/cards/MaterialCard';
-import { Task, Training, Material } from '../../../src/types';
+import { RoutineCard } from '../../../src/components/cards/RoutineCard';
+import { Task, Training, Material, Routine, RoutineProgress } from '../../../src/types';
 
-type Tab = 'tasks' | 'trainings' | 'materials';
+type Tab = 'routines' | 'tasks' | 'trainings' | 'materials';
 
 export default function PlayerGroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
+  const [routines, setRoutines] = useState<Routine[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [tab, setTab] = useState<Tab>('tasks');
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [tab, setTab] = useState<Tab>('routines');
 
   const loadData = async () => {
     try {
-      const [taskList, trainingList, materialList] = await Promise.all([
+      const [routineList, taskList, trainingList, materialList] = await Promise.all([
+        routinesService.getRoutinesByGroup(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
         trainingsService.getTrainingsByGroup(Number(id)),
         materialsService.getMaterialsByGroup(Number(id)),
       ]);
+      setRoutines(routineList);
       setTasks(taskList);
       setTrainings(trainingList);
       setMaterials(materialList);
@@ -51,6 +57,21 @@ export default function PlayerGroupScreen() {
     loadData();
   };
 
+  const handleToggleRoutine = async (routine: Routine) => {
+    const progress = routine.progress as RoutineProgress;
+    const newStatus = progress.status === 'completed' ? 'pending' : 'completed';
+
+    setTogglingId(routine.id);
+    try {
+      await routinesService.updateProgress(routine.id, newStatus);
+      await loadData();
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось обновить статус');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -60,6 +81,7 @@ export default function PlayerGroupScreen() {
   }
 
   const TABS: { key: Tab; label: string }[] = [
+    { key: 'routines', label: `Рутина (${routines.length})` },
     { key: 'tasks', label: `Задачи (${tasks.length})` },
     { key: 'trainings', label: `Тренировки (${trainings.length})` },
     { key: 'materials', label: `Материалы (${materials.length})` },
@@ -87,6 +109,31 @@ export default function PlayerGroupScreen() {
         </View>
       </ScrollView>
 
+      {tab === 'routines' && (
+        routines.length === 0 ? (
+          <View style={styles.empty}><Text style={styles.emptyText}>Тренер пока не назначил рутину</Text></View>
+        ) : (
+          <FlatList
+            data={routines}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={styles.list}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
+            renderItem={({ item }) => {
+              const progress = item.progress as RoutineProgress;
+              return (
+                <RoutineCard
+                  title={item.title}
+                  description={item.description}
+                  status={progress.status}
+                  onToggle={() => handleToggleRoutine(item)}
+                  loading={togglingId === item.id}
+                />
+              );
+            }}
+          />
+        )
+      )}
+
       {tab === 'tasks' && (
         tasks.length === 0 ? (
           <View style={styles.empty}><Text style={styles.emptyText}>Пока нет задач</Text></View>
@@ -112,9 +159,7 @@ export default function PlayerGroupScreen() {
             keyExtractor={(item) => String(item.id)}
             contentContainerStyle={styles.list}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
-            renderItem={({ item }) => (
-              <TrainingCard training={item} onDelete={() => {}} />
-            )}
+            renderItem={({ item }) => <TrainingCard training={item} />}
           />
         )
       )}
@@ -128,9 +173,7 @@ export default function PlayerGroupScreen() {
             keyExtractor={(item) => String(item.id)}
             contentContainerStyle={styles.list}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
-            renderItem={({ item }) => (
-              <MaterialCard material={item} />
-            )}
+            renderItem={({ item }) => <MaterialCard material={item} />}
           />
         )
       )}

@@ -5,10 +5,11 @@ import { groupsService } from '../../../src/services/groupsService';
 import { tasksService } from '../../../src/services/tasksService';
 import { trainingsService } from '../../../src/services/trainingsService';
 import { materialsService } from '../../../src/services/materialsService';
+import { routinesService } from '../../../src/services/routinesService';
 import { TaskCard } from '../../../src/components/cards/TaskCard';
 import { TrainingCard } from '../../../src/components/cards/TrainingCard';
 import { MaterialCard } from '../../../src/components/cards/MaterialCard';
-import { Task, Training, Material } from '../../../src/types';
+import { Task, Training, Material, Routine, RoutineProgress } from '../../../src/types';
 
 interface Member {
   id: number;
@@ -16,7 +17,7 @@ interface Member {
   email: string;
 }
 
-type Tab = 'tasks' | 'members' | 'trainings' | 'materials';
+type Tab = 'routines' | 'tasks' | 'trainings' | 'materials' | 'members';
 
 export default function CoachGroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,23 +28,26 @@ export default function CoachGroupScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [tab, setTab] = useState<Tab>('tasks');
+  const [tab, setTab] = useState<Tab>('routines');
 
   const loadData = async () => {
     try {
-      const [group, taskList, trainingList, materialList] = await Promise.all([
+      const [group, taskList, trainingList, materialList, routineList] = await Promise.all([
         groupsService.getGroupById(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
         trainingsService.getTrainingsByGroup(Number(id)),
         materialsService.getMaterialsByGroup(Number(id)),
+        routinesService.getRoutinesByGroup(Number(id)),
       ]);
       setGroupName(group.name);
       setMembers(group.members);
       setTasks(taskList);
       setTrainings(trainingList);
       setMaterials(materialList);
+      setRoutines(routineList);
     } catch {
       // тихо
     } finally {
@@ -89,6 +93,19 @@ export default function CoachGroupScreen() {
     ]);
   };
 
+  const handleDeactivateRoutine = (routineId: number) => {
+    Alert.alert('Удалить рутину?', 'Задание перестанет появляться у игроков', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Удалить', style: 'destructive',
+        onPress: async () => {
+          await routinesService.deactivateRoutine(routineId);
+          loadData();
+        },
+      },
+    ]);
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -98,6 +115,7 @@ export default function CoachGroupScreen() {
   }
 
   const TABS: { key: Tab; label: string }[] = [
+    { key: 'routines', label: `Рутина (${routines.length})` },
     { key: 'tasks', label: `Задачи (${tasks.length})` },
     { key: 'trainings', label: `Тренировки (${trainings.length})` },
     { key: 'materials', label: `Материалы (${materials.length})` },
@@ -106,6 +124,7 @@ export default function CoachGroupScreen() {
 
   const getFabAction = () => {
     switch (tab) {
+      case 'routines': return () => router.push(`/(coach)/create-routine?groupId=${id}`);
       case 'tasks': return () => router.push(`/(coach)/create-task?groupId=${id}`);
       case 'trainings': return () => router.push(`/(coach)/create-training?groupId=${id}`);
       case 'materials': return () => router.push(`/(coach)/create-material?groupId=${id}`);
@@ -134,6 +153,47 @@ export default function CoachGroupScreen() {
           ))}
         </View>
       </ScrollView>
+
+      {tab === 'routines' && (
+        routines.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>Пока нет рутинных заданий</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={routines}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={styles.list}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
+            renderItem={({ item }) => {
+              const progress = item.progress as RoutineProgress[];
+              const completed = progress.filter(p => p.status === 'completed').length;
+              const total = progress.length;
+              return (
+                <View style={{ marginBottom: 10 }}>
+                  <View style={styles.routineHeader}>
+                    <Text style={styles.routineTitle}>{item.title}</Text>
+                    <Text style={styles.routineProgress}>{completed}/{total}</Text>
+                    <TouchableOpacity onPress={() => handleDeactivateRoutine(item.id)}>
+                      <Text style={styles.deleteText}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {progress.map((p) => (
+                    <View key={p.player_id} style={styles.playerProgressRow}>
+                      <Text style={styles.playerName}>{p.username}</Text>
+                      <View style={[styles.miniStatus, { borderColor: p.status === 'completed' ? '#22c55e' : p.status === 'in_progress' ? '#3b82f6' : '#666' }]}>
+                        <Text style={[styles.miniStatusText, { color: p.status === 'completed' ? '#22c55e' : p.status === 'in_progress' ? '#3b82f6' : '#666' }]}>
+                          {p.status === 'completed' ? 'Выполнено' : p.status === 'in_progress' ? 'В процессе' : 'Не начато'}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              );
+            }}
+          />
+        )
+      )}
 
       {tab === 'tasks' && (
         tasks.length === 0 ? (
@@ -228,6 +288,21 @@ const styles = StyleSheet.create({
   list: { paddingBottom: 100 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: '#888', fontSize: 15 },
+  routineHeader: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
+    borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#2a2d3e',
+  },
+  routineTitle: { color: '#fff', fontSize: 14, fontWeight: '600', flex: 1 },
+  routineProgress: { color: '#f59e0b', fontSize: 13, fontWeight: '600', marginRight: 12 },
+  deleteText: { color: '#666', fontSize: 16, padding: 4 },
+  playerProgressRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#14172a',
+    borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#2a2d3e',
+  },
+  playerName: { color: '#aaa', fontSize: 13 },
+  miniStatus: { borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  miniStatusText: { fontSize: 11, fontWeight: '600' },
   memberCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
     borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#2a2d3e',
