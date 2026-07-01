@@ -55,3 +55,25 @@ export interface Material {
   type: MaterialType;
   created_at: string;
 }
+
+export interface RoutineProgress {
+  id?: number;
+  routine_id: number;
+  player_id?: number;
+  date?: string;
+  status: TaskStatus;
+  note?: string;
+  username?: string; // для coach view, где progress — массив
+}
+
+export interface Routine {
+  id: number;
+  group_id: number;
+  coach_id: number;
+  title: string;
+  description?: string;
+  priority: TaskPriority;
+  is_active: boolean;
+  created_at: string;
+  progress: RoutineProgress | RoutineProgress[];
+}

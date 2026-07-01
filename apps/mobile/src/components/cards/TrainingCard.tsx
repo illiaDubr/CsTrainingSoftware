@@ -3,12 +3,11 @@ import { Training } from '../../types';
 
 interface Props {
   training: Training;
-  onDelete: () => void;
+  onDelete?: () => void;
 }
 
 export function TrainingCard({ training, onDelete }: Props) {
   const date = new Date(training.scheduled_at);
-  const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
   const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
   return (
@@ -29,9 +28,11 @@ export function TrainingCard({ training, onDelete }: Props) {
           ) : null}
         </View>
       </View>
-      <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
-        <Text style={styles.deleteText}>✕</Text>
-      </TouchableOpacity>
+      {onDelete ? (
+        <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
+          <Text style={styles.deleteText}>✕</Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }

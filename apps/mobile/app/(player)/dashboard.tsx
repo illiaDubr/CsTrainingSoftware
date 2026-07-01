@@ -56,15 +56,17 @@ export default function PlayerDashboard() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
+     <View style={styles.header}>
+      <View>
           <Text style={styles.greeting}>Привет, {user?.username} 👋</Text>
           <Text style={styles.subtitle}>Твои группы</Text>
-        </View>
-        <TouchableOpacity onPress={handleLogout}>
-          <Text style={styles.logout}>Выйти</Text>
-        </TouchableOpacity>
       </View>
+        <TouchableOpacity onPress={() => router.push('/(player)/profile')} style={styles.profileBtn}>
+          <Text style={styles.profileBtnText}>{user?.username[0].toUpperCase()}</Text>
+        </TouchableOpacity>
+    </View>
+  
+
 
       {groups.length === 0 ? (
         <View style={styles.empty}>
@@ -96,9 +98,14 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
   greeting: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 4 },
   subtitle: { color: '#888', fontSize: 14 },
-  logout: { color: '#f59e0b', fontSize: 14 },
   list: { paddingBottom: 40 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emptyText: { color: '#888', fontSize: 15, textAlign: 'center', marginBottom: 8 },
   emptySubtext: { color: '#555', fontSize: 13, textAlign: 'center' },
+  headerButtons: { alignItems: 'flex-end', gap: 8 },
+profileBtn: {
+  width: 38, height: 38, borderRadius: 19, backgroundColor: '#2a1f00',
+  justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#f59e0b',
+},
+profileBtnText: { color: '#f59e0b', fontWeight: 'bold', fontSize: 15 },
 });
