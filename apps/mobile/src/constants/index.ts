@@ -1,1 +1,1 @@
-export const API_URL = 'http://172.20.10.8:3000/api';
+export const API_URL = 'https://melodious-blessing-production.up.railway.app/api';
