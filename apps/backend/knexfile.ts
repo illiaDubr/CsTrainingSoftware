@@ -1,6 +1,5 @@
 import 'dotenv/config';
-import { Knex  } from 'knex';
-
+import { Knex } from 'knex';
 
 const config: { [key: string]: Knex.Config } = {
   development: {
@@ -15,6 +14,16 @@ const config: { [key: string]: Knex.Config } = {
     migrations: {
       directory: './migrations',
       extension: 'ts',
+    },
+  },
+  production: {
+    client: 'pg',
+    connection: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    },
+    migrations: {
+      directory: './dist/migrations',
     },
   },
 };
