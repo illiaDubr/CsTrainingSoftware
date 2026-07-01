@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { config } from './config/app';
-import { testConnection } from './config/database';
+import { db, testConnection } from './config/database';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFound } from './middlewares/notFound';
 import authRoutes from './routes/auth';
@@ -28,19 +28,12 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-
 app.use('/api/users', userRoutes);
-
 app.use('/api/groups', groupRoutes);
-
 app.use('/api/tasks', taskRoutes);
-
 app.use('/api/trainings', trainingRoutes);
-
 app.use('/api/materials', materialRoutes);
-
 app.use('/api/routines', routineRoutes);
-
 app.use('/api/stats', statsRoutes);
 
 app.use(notFound);
@@ -49,12 +42,10 @@ app.use(errorHandler);
 const start = async () => {
   await testConnection();
 
-  // Автоматически применяем миграции при старте
   if (process.env.NODE_ENV === 'production') {
     console.log('🔄 Running migrations...');
     await db.migrate.latest({
       directory: './migrations',
-      extension: 'js', // в production используем скомпилированные JS
     });
     console.log('✅ Migrations done');
   }
