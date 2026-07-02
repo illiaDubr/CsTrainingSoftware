@@ -10,6 +10,7 @@ import { TaskCard } from '../../../src/components/cards/TaskCard';
 import { TrainingCard } from '../../../src/components/cards/TrainingCard';
 import { MaterialCard } from '../../../src/components/cards/MaterialCard';
 import { Task, Training, Material, Routine, RoutineProgress } from '../../../src/types';
+import { RoutineCardCoach } from '../../../src/components/cards/RoutineCardCoach';
 
 interface Member {
   id: number;
@@ -155,45 +156,26 @@ export default function CoachGroupScreen() {
       </ScrollView>
 
       {tab === 'routines' && (
-        routines.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>Пока нет рутинных заданий</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={routines}
-            keyExtractor={(item) => String(item.id)}
-            contentContainerStyle={styles.list}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
-            renderItem={({ item }) => {
-              const progress = item.progress as RoutineProgress[];
-              const completed = progress.filter(p => p.status === 'completed').length;
-              const total = progress.length;
-              return (
-                <View style={{ marginBottom: 10 }}>
-                  <View style={styles.routineHeader}>
-                    <Text style={styles.routineTitle}>{item.title}</Text>
-                    <Text style={styles.routineProgress}>{completed}/{total}</Text>
-                    <TouchableOpacity onPress={() => handleDeactivateRoutine(item.id)}>
-                      <Text style={styles.deleteText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {progress.map((p) => (
-                    <View key={p.player_id} style={styles.playerProgressRow}>
-                      <Text style={styles.playerName}>{p.username}</Text>
-                      <View style={[styles.miniStatus, { borderColor: p.status === 'completed' ? '#22c55e' : p.status === 'in_progress' ? '#3b82f6' : '#666' }]}>
-                        <Text style={[styles.miniStatusText, { color: p.status === 'completed' ? '#22c55e' : p.status === 'in_progress' ? '#3b82f6' : '#666' }]}>
-                          {p.status === 'completed' ? 'Выполнено' : p.status === 'in_progress' ? 'В процессе' : 'Не начато'}
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              );
-            }}
-          />
-        )
+  routines.length === 0 ? (
+    <View style={styles.empty}>
+      <Text style={styles.emptyText}>Пока нет рутинных заданий</Text>
+    </View>
+  ) : (
+    <FlatList
+      data={routines}
+      keyExtractor={(item) => String(item.id)}
+      contentContainerStyle={styles.list}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
+      renderItem={({ item }) => (
+        <RoutineCardCoach
+          routine={item}
+          todayDate={new Date().toLocaleDateString('en-CA')}
+          onDelete={() => handleDeactivateRoutine(item.id)}
+        />
       )}
+    />
+  )
+)}
 
       {tab === 'tasks' && (
         tasks.length === 0 ? (
