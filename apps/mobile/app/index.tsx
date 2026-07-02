@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useAppDispatch } from '../src/hooks/useAppDispatch';
 import { setCredentials } from '../src/store/slices/authSlice';
 import { apiClient } from '../src/services/apiClient';
+import { storage } from '../src/services/storage';
 
 export default function Index() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function Index() {
 
   const checkAuth = async () => {
     try {
-      const token = await SecureStore.getItemAsync('access_token');
+      const token = await storage.getItem('access_token');
       if (!token) {
         router.replace('/(auth)/login');
         return;
