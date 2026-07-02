@@ -8,8 +8,8 @@ import { routinesService } from '../../../src/services/routinesService';
 import { TaskCard } from '../../../src/components/cards/TaskCard';
 import { TrainingCard } from '../../../src/components/cards/TrainingCard';
 import { MaterialCard } from '../../../src/components/cards/MaterialCard';
-import { RoutineCard } from '../../../src/components/cards/RoutineCard';
 import { Task, Training, Material, Routine, RoutineProgress } from '../../../src/types';
+import { RoutineCardPlayer } from '../../../src/components/cards/RoutineCardPlayer';
 
 type Tab = 'routines' | 'tasks' | 'trainings' | 'materials';
 
@@ -110,29 +110,29 @@ export default function PlayerGroupScreen() {
       </ScrollView>
 
       {tab === 'routines' && (
-        routines.length === 0 ? (
-          <View style={styles.empty}><Text style={styles.emptyText}>Тренер пока не назначил рутину</Text></View>
-        ) : (
-          <FlatList
-            data={routines}
-            keyExtractor={(item) => String(item.id)}
-            contentContainerStyle={styles.list}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
-            renderItem={({ item }) => {
-              const progress = item.progress as RoutineProgress;
-              return (
-                <RoutineCard
-                  title={item.title}
-                  description={item.description}
-                  status={progress.status}
-                  onToggle={() => handleToggleRoutine(item)}
-                  loading={togglingId === item.id}
-                />
-              );
-            }}
-          />
-        )
+  routines.length === 0 ? (
+    <View style={styles.empty}>
+      <Text style={styles.emptyText}>Тренер пока не назначил рутину</Text>
+    </View>
+  ) : (
+    <FlatList
+      data={routines}
+      keyExtractor={(item) => String(item.id)}
+      contentContainerStyle={styles.list}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
+      renderItem={({ item }) => (
+        <RoutineCardPlayer
+          routine={item}
+          todayDate={new Date().toLocaleDateString('en-CA')}
+          onUpdateStatus={async (routineId, status, note) => {
+            await routinesService.updateProgress(routineId, status, note);
+            await loadData();
+          }}
+        />
       )}
+    />
+  )
+)}
 
       {tab === 'tasks' && (
         tasks.length === 0 ? (

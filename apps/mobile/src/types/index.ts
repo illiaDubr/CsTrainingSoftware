@@ -66,6 +66,19 @@ export interface RoutineProgress {
   username?: string; // для coach view, где progress — массив
 }
 
+export interface MonthProgressDay {
+  date: string;
+  status: TaskStatus;
+}
+
+export interface PlayerRoutineStat {
+  playerId: number;
+  username: string;
+  todayStatus: TaskStatus;
+  completionRate: number;
+  monthProgress: MonthProgressDay[];
+}
+
 export interface Routine {
   id: number;
   group_id: number;
@@ -75,5 +88,13 @@ export interface Routine {
   priority: TaskPriority;
   is_active: boolean;
   created_at: string;
-  progress: RoutineProgress | RoutineProgress[];
+  // player view
+  todayStatus?: TaskStatus;
+  todayNote?: string;
+  monthProgress?: MonthProgressDay[];
+  completionRate?: number;
+  // coach view
+  playerStats?: PlayerRoutineStat[];
+  // legacy
+  progress?: RoutineProgress | RoutineProgress[];
 }

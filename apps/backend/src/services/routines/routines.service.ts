@@ -1,9 +1,20 @@
 import { db } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
 
-const todayDate = () => new Date().toISOString().split('T')[0];
+const todayDate = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
-// Гарантирует что для всех активных routine группы есть запись на сегодня для каждого игрока
+const currentMonthRange = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const firstDay = `${year}-${month}-01`;
+  const lastDay = `${year}-${month}-${String(new Date(year, now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
+  return { firstDay, lastDay };
+};
+
 const ensureTodayProgress = async (groupId: number) => {
   const routines = await db('routines').where({ group_id: groupId, is_active: true });
   if (routines.length === 0) return;
@@ -33,27 +44,84 @@ export const getRoutinesByGroup = async (groupId: number, userId: number, role: 
   await ensureTodayProgress(groupId);
 
   const routines = await db('routines').where({ group_id: groupId, is_active: true });
+  const { firstDay, lastDay } = currentMonthRange();
   const today = todayDate();
 
   if (role === 'player') {
-    const progress = await db('routine_progress').where({ player_id: userId, date: today });
-    return routines.map(r => ({
-      ...r,
-      progress: progress.find(p => p.routine_id === r.id) || { status: 'pending' },
-    }));
+    const progress = await db('routine_progress')
+      .where({ player_id: userId })
+      .whereBetween('date', [firstDay, lastDay])
+      .whereIn('routine_id', routines.map(r => r.id))
+      .select('*');
+
+    return routines.map(r => {
+      const routineProgress = progress.filter(p => p.routine_id === r.id);
+      const todayProgress = routineProgress.find(p => {
+        const d = p.date instanceof Date ? p.date : new Date(p.date);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return dateStr === today;
+      });
+      const completed = routineProgress.filter(p => p.status === 'completed').length;
+      const total = routineProgress.length;
+
+      return {
+        ...r,
+        todayStatus: todayProgress?.status || 'pending',
+        todayNote: todayProgress?.note || '',
+        monthProgress: routineProgress.map(p => {
+          const d = p.date instanceof Date ? p.date : new Date(p.date);
+          return {
+            date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+            status: p.status,
+          };
+        }),
+        completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+      };
+    });
   }
 
   if (role === 'coach') {
+    const members = await db('group_members')
+      .join('users', 'group_members.player_id', 'users.id')
+      .where({ group_id: groupId })
+      .select('users.id', 'users.username');
+
     const progress = await db('routine_progress')
-      .join('users', 'routine_progress.player_id', 'users.id')
-      .where({ date: today })
+      .whereBetween('date', [firstDay, lastDay])
       .whereIn('routine_id', routines.map(r => r.id))
+      .join('users', 'routine_progress.player_id', 'users.id')
       .select('routine_progress.*', 'users.username');
 
-    return routines.map(r => ({
-      ...r,
-      progress: progress.filter(p => p.routine_id === r.id),
-    }));
+    return routines.map(r => {
+      const routineProgress = progress.filter(p => p.routine_id === r.id);
+
+      const playerStats = members.map(m => {
+        const playerProgress = routineProgress.filter(p => p.player_id === m.id);
+        const completed = playerProgress.filter(p => p.status === 'completed').length;
+        const total = playerProgress.length;
+        const todayP = playerProgress.find(p => {
+          const d = p.date instanceof Date ? p.date : new Date(p.date);
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          return dateStr === today;
+        });
+
+        return {
+          playerId: m.id,
+          username: m.username,
+          todayStatus: todayP?.status || 'pending',
+          completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+          monthProgress: playerProgress.map(p => {
+            const d = p.date instanceof Date ? p.date : new Date(p.date);
+            return {
+              date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+              status: p.status,
+            };
+          }),
+        };
+      });
+
+      return { ...r, playerStats };
+    });
   }
 
   return routines;
@@ -95,7 +163,9 @@ export const updateRoutineProgress = async (routineId: number, playerId: number,
 }) => {
   const today = todayDate();
 
-  const existing = await db('routine_progress').where({ routine_id: routineId, player_id: playerId, date: today }).first();
+  const existing = await db('routine_progress')
+    .where({ routine_id: routineId, player_id: playerId, date: today })
+    .first();
   if (!existing) throw new AppError('Routine not assigned to you today', 404);
 
   const completed_at = dto.status === 'completed' ? db.fn.now() : null;

@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { usersService } from '../../src/services/usersService';
 import { groupsService } from '../../src/services/groupsService';
@@ -20,34 +29,32 @@ export default function AddMemberScreen() {
   const [addingId, setAddingId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-
     const timeout = setTimeout(async () => {
       setSearching(true);
+
       try {
         const data = await usersService.searchPlayers(query.trim());
         setResults(data);
-      } catch {
-        // тихо
+      } catch (err) {
+        console.error(err);
       } finally {
         setSearching(false);
       }
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(timeout);
   }, [query]);
 
   const handleAdd = async (player: Player) => {
     setAddingId(player.id);
+
     try {
       await groupsService.addMember(Number(groupId), player.id);
       Alert.alert('Готово', `${player.username} добавлен в группу`);
       router.back();
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Не удалось добавить игрока';
+      const message =
+        err.response?.data?.message || 'Не удалось добавить игрока';
       Alert.alert('Ошибка', message);
     } finally {
       setAddingId(null);
@@ -72,7 +79,9 @@ export default function AddMemberScreen() {
         autoFocus
       />
 
-      {searching && <ActivityIndicator color="#f59e0b" style={{ marginTop: 16 }} />}
+      {searching && (
+        <ActivityIndicator color="#f59e0b" style={{ marginTop: 16 }} />
+      )}
 
       <FlatList
         data={results}
@@ -85,21 +94,28 @@ export default function AddMemberScreen() {
             disabled={addingId === item.id}
           >
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.username[0].toUpperCase()}</Text>
+              <Text style={styles.avatarText}>
+                {item.username[0].toUpperCase()}
+              </Text>
             </View>
+
             <View style={{ flex: 1 }}>
               <Text style={styles.username}>{item.username}</Text>
               <Text style={styles.email}>{item.email}</Text>
             </View>
-            {addingId === item.id
-              ? <ActivityIndicator color="#f59e0b" />
-              : <Text style={styles.addText}>Добавить</Text>
-            }
+
+            {addingId === item.id ? (
+              <ActivityIndicator color="#f59e0b" />
+            ) : (
+              <Text style={styles.addText}>Добавить</Text>
+            )}
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          query.trim().length >= 2 && !searching ? (
-            <Text style={styles.emptyText}>Никого не найдено</Text>
+          !searching ? (
+            <Text style={styles.emptyText}>
+              Игроков не найдено
+            </Text>
           ) : null
         }
       />
@@ -108,25 +124,79 @@ export default function AddMemberScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117', paddingTop: 60, paddingHorizontal: 20 },
-  back: { color: '#f59e0b', fontSize: 15, marginBottom: 12 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
-  input: {
-    backgroundColor: '#1a1d2e', borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 10,
-    paddingHorizontal: 16, paddingVertical: 14, color: '#fff', fontSize: 15, marginBottom: 20,
+  container: {
+    flex: 1,
+    backgroundColor: '#0f1117',
+    paddingTop: 60,
+    paddingHorizontal: 20,
   },
-  list: { paddingBottom: 40 },
+  back: {
+    color: '#f59e0b',
+    fontSize: 15,
+    marginBottom: 12,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#1a1d2e',
+    borderWidth: 1,
+    borderColor: '#2a2d3e',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: '#fff',
+    fontSize: 15,
+    marginBottom: 20,
+  },
+  list: {
+    paddingBottom: 40,
+  },
   resultCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
-    borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#2a2d3e',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1d2e',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#2a2d3e',
   },
   avatar: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#2a1f00',
-    justifyContent: 'center', alignItems: 'center', marginRight: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2a1f00',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
-  avatarText: { color: '#f59e0b', fontWeight: 'bold', fontSize: 16 },
-  username: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  email: { color: '#888', fontSize: 12, marginTop: 2 },
-  addText: { color: '#f59e0b', fontSize: 13, fontWeight: '600' },
-  emptyText: { color: '#666', textAlign: 'center', marginTop: 30 },
+  avatarText: {
+    color: '#f59e0b',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  username: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  email: {
+    color: '#888',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  addText: {
+    color: '#f59e0b',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  emptyText: {
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 30,
+  },
 });
