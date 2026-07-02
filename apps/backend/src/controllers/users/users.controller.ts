@@ -29,14 +29,20 @@ export const getUserByIdController = async (req: AuthRequest, res: Response, nex
   }
 };
 
-export const searchPlayersController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const searchPlayersController = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { q } = req.query;
-    if (!q || String(q).length < 2) {
-      return res.json({ success: true, data: [] });
-    }
-    const players = await usersService.searchPlayers(String(q));
-    res.json({ success: true, data: players });
+    const q = String(req.query.q ?? "").trim();
+
+    const players = await usersService.searchPlayers(q);
+
+    res.json({
+      success: true,
+      data: players,
+    });
   } catch (err) {
     next(err);
   }
