@@ -49,6 +49,9 @@ export function RoutineCardCoach({ routine, todayDate, onDelete }: Props) {
             <View style={{ flex: 1 }}>
               <Text style={styles.playerName}>{player.username}</Text>
               <Text style={styles.playerRate}>Выполнение: {player.completionRate}%</Text>
+              {player.todayNote ? (
+  <Text style={styles.playerNote}>💬 {player.todayNote}</Text>
+) : null}
             </View>
             <View style={[styles.todayBadge, { borderColor: STATUS_COLORS[player.todayStatus] }]}>
               <Text style={[styles.todayBadgeText, { color: STATUS_COLORS[player.todayStatus] }]}>
@@ -100,4 +103,5 @@ const styles = StyleSheet.create({
   },
   todayBadgeText: { fontSize: 10, fontWeight: '600' },
   emptyText: { color: '#666', fontSize: 13, textAlign: 'center', marginTop: 8 },
+  playerNote: { color: '#888', fontSize: 11, fontStyle: 'italic', marginTop: 2 },
 });

@@ -109,6 +109,7 @@ export const getRoutinesByGroup = async (groupId: number, userId: number, role: 
           playerId: m.id,
           username: m.username,
           todayStatus: todayP?.status || 'pending',
+          todayNote: todayP?.note || '',
           completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
           monthProgress: playerProgress.map(p => {
             const d = p.date instanceof Date ? p.date : new Date(p.date);

@@ -45,7 +45,7 @@ export default function CoachPlayerProfileScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity onPress={() => router.back()}>
+      <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(player)/dashboard')}>
         <Text style={styles.back}>‹ Назад</Text>
       </TouchableOpacity>
 
