@@ -135,7 +135,7 @@ export default function CoachGroupScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => router.back()}>
+      <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(coach)/dashboard')}>
         <Text style={styles.back}>‹ Назад</Text>
       </TouchableOpacity>
 
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 12 },
   title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
-  tabsScroll: { flexGrow: 0, marginBottom: 20 },
+  tabsScroll: { flexGrow: 0, marginBottom: 20, flexShrink: 0 },
   tabs: { flexDirection: 'row', gap: 10 },
   tab: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#1a1d2e', borderWidth: 1, borderColor: '#2a2d3e' },
   tabActive: { borderColor: '#f59e0b', backgroundColor: '#2a1f00' },

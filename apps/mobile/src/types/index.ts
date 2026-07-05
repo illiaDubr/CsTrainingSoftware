@@ -77,6 +77,7 @@ export interface PlayerRoutineStat {
   todayStatus: TaskStatus;
   completionRate: number;
   monthProgress: MonthProgressDay[];
+  todayNote: string;
 }
 
 export interface Routine {
@@ -96,5 +97,6 @@ export interface Routine {
   // coach view
   playerStats?: PlayerRoutineStat[];
   // legacy
+  
   progress?: RoutineProgress | RoutineProgress[];
 }
