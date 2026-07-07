@@ -36,8 +36,11 @@ export const register = async (dto: CreateUserDto) => {
       username: dto.username,
       password_hash,
       role: dto.role,
+      full_name: dto.full_name || null,
+      in_game_role: dto.in_game_role || null,
+      bio: dto.bio || null,
     })
-    .returning(['id', 'email', 'username', 'role']);
+    .returning(['id', 'email', 'username', 'role', 'full_name', 'in_game_role', 'bio']);
 
   const tokens = generateTokens(user.id, user.role);
 

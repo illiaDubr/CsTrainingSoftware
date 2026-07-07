@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   username: string;
   role: UserRole;
+  full_name?: string | null;
   in_game_role?: string | null;
   bio?: string | null;
   avatar_url?: string | null;

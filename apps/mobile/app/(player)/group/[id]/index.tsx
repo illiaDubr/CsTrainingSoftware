@@ -5,7 +5,7 @@ import { tasksService } from '../../../../src/services/tasksService';
 import { trainingsService } from '../../../../src/services/trainingsService';
 import { materialsService } from '../../../../src/services/materialsService';
 import { routinesService } from '../../../../src/services/routinesService';
-import { Routine, RoutineProgress } from '../../../../src/types';
+import { Routine } from '../../../../src/types';
 
 export default function PlayerGroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,9 +31,7 @@ export default function PlayerGroupScreen() {
         materials: materialList.length,
       });
       setRoutinesDone(
-        (routineList as Routine[]).filter(
-          (r) => (r.progress as RoutineProgress | undefined)?.status === 'completed'
-        ).length
+        (routineList as Routine[]).filter((r) => r.todayStatus === 'completed').length
       );
     } catch {
       // тихо

@@ -10,6 +10,9 @@ export interface User {
   password_hash: string;
   username: string;
   role: UserRole;
+  full_name?: string | null;
+  in_game_role?: string | null;
+  bio?: string | null;
   avatar_url?: string;
   is_active: boolean;
   created_at: Date;
@@ -21,4 +24,7 @@ export type CreateUserDto = {
   username: string;
   password: string;
   role: UserRole;
+  full_name?: string | null;
+  in_game_role?: string | null;
+  bio?: string | null;
 };

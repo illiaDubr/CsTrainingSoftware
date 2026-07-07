@@ -6,7 +6,7 @@ export const usersService = {
     return data.data;
   },
 
-  async updateMe(dto: { username?: string; in_game_role?: string | null; bio?: string | null }) {
+  async updateMe(dto: { username?: string; full_name?: string | null; in_game_role?: string | null; bio?: string | null }) {
     const { data } = await apiClient.patch('/users/me', dto);
     return data.data;
   },

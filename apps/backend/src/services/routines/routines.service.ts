@@ -40,6 +40,97 @@ const ensureTodayProgress = async (groupId: number) => {
   }
 };
 
+const ensureTodayProgressPersonal = async (playerId: number) => {
+  const routines = await db('routines').where({ player_id: playerId, is_active: true });
+  if (routines.length === 0) return;
+
+  const today = todayDate();
+
+  for (const routine of routines) {
+    const existing = await db('routine_progress')
+      .where({ routine_id: routine.id, player_id: playerId, date: today })
+      .first();
+    if (!existing) {
+      await db('routine_progress').insert({
+        routine_id: routine.id, player_id: playerId, date: today, status: 'pending',
+      });
+    }
+  }
+};
+
+const shapePlayerRoutines = (routines: any[], progress: any[], today: string) => {
+  return routines.map(r => {
+    const routineProgress = progress.filter(p => p.routine_id === r.id);
+    const todayProgress = routineProgress.find(p => {
+      const d = p.date instanceof Date ? p.date : new Date(p.date);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      return dateStr === today;
+    });
+    const completed = routineProgress.filter(p => p.status === 'completed').length;
+    const total = routineProgress.length;
+
+    return {
+      ...r,
+      todayStatus: todayProgress?.status || 'pending',
+      todayNote: todayProgress?.note || '',
+      monthProgress: routineProgress.map(p => {
+        const d = p.date instanceof Date ? p.date : new Date(p.date);
+        return {
+          date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+          status: p.status,
+        };
+      }),
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  });
+};
+
+export const getPersonalRoutines = async (playerId: number) => {
+  await ensureTodayProgressPersonal(playerId);
+
+  const routines = await db('routines').where({ player_id: playerId, is_active: true });
+  const { firstDay, lastDay } = currentMonthRange();
+  const today = todayDate();
+
+  const progress = await db('routine_progress')
+    .where({ player_id: playerId })
+    .whereBetween('date', [firstDay, lastDay])
+    .whereIn('routine_id', routines.map(r => r.id))
+    .select('*');
+
+  return shapePlayerRoutines(routines, progress, today);
+};
+
+export const getPersonalRoutinesForCoach = async (coachId: number, playerId: number) => {
+  // Тренер может смотреть только рутину игроков из своих групп
+  const shared = await db('group_members')
+    .join('groups', 'group_members.group_id', 'groups.id')
+    .where('groups.coach_id', coachId)
+    .andWhere('group_members.player_id', playerId)
+    .first();
+
+  if (!shared) throw new AppError('Player is not in your groups', 403);
+
+  return getPersonalRoutines(playerId);
+};
+
+export const createPersonalRoutine = async (playerId: number, dto: {
+  title: string;
+  description?: string;
+  priority?: string;
+}) => {
+  const [routine] = await db('routines')
+    .insert({
+      player_id: playerId,
+      title: dto.title,
+      description: dto.description,
+      priority: dto.priority || 'medium',
+    })
+    .returning('*');
+
+  return routine;
+};
+
 export const getRoutinesByGroup = async (groupId: number, userId: number, role: string) => {
   await ensureTodayProgress(groupId);
 
@@ -150,8 +241,14 @@ export const createRoutine = async (coachId: number, dto: {
   return routine;
 };
 
-export const deactivateRoutine = async (id: number, coachId: number) => {
-  const routine = await db('routines').where({ id, coach_id: coachId }).first();
+export const deactivateRoutine = async (id: number, userId: number) => {
+  // Владелец — тренер (групповая рутина) или игрок (индивидуальная)
+  const routine = await db('routines')
+    .where({ id })
+    .andWhere((qb) => {
+      qb.where({ coach_id: userId }).orWhere({ player_id: userId });
+    })
+    .first();
   if (!routine) throw new AppError('Routine not found or access denied', 404);
 
   await db('routines').where({ id }).update({ is_active: false, updated_at: db.fn.now() });

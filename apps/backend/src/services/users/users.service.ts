@@ -7,7 +7,7 @@ export type InGameRole = (typeof IN_GAME_ROLES)[number];
 export const getMe = async (userId: number) => {
   const user = await db('users')
     .where({ id: userId })
-    .select('id', 'email', 'username', 'role', 'avatar_url', 'is_active', 'in_game_role', 'bio')
+    .select('id', 'email', 'username', 'role', 'avatar_url', 'is_active', 'in_game_role', 'bio', 'full_name')
     .first();
 
   if (!user) throw new AppError('User not found', 404);
@@ -16,7 +16,7 @@ export const getMe = async (userId: number) => {
 
 export const updateMe = async (
   userId: number,
-  dto: { username?: string; in_game_role?: string | null; bio?: string | null }
+  dto: { username?: string; full_name?: string | null; in_game_role?: string | null; bio?: string | null }
 ) => {
   if (dto.username !== undefined) {
     const username = String(dto.username).trim();
@@ -34,10 +34,15 @@ export const updateMe = async (
     throw new AppError('Bio must be at most 500 characters', 400);
   }
 
+  if (dto.full_name !== undefined && dto.full_name !== null) {
+    const fullName = String(dto.full_name).trim();
+    dto.full_name = fullName || null;
+  }
+
   const [user] = await db('users')
     .where({ id: userId })
     .update({ ...dto, updated_at: db.fn.now() })
-    .returning(['id', 'email', 'username', 'role', 'avatar_url', 'is_active', 'in_game_role', 'bio']);
+    .returning(['id', 'email', 'username', 'role', 'avatar_url', 'is_active', 'in_game_role', 'bio', 'full_name']);
 
   if (!user) throw new AppError('User not found', 404);
   return user;

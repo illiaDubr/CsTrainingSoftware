@@ -74,6 +74,7 @@ export default function PlayerProfileScreen() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.username}>{user?.username}</Text>
+          {user?.full_name ? <Text style={styles.fullName}>{user.full_name}</Text> : null}
           <Text style={styles.email}>{user?.email}</Text>
           <View style={styles.badgeRow}>
             <View style={styles.roleBadge}>
@@ -121,7 +122,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', marginRight: 14,
   },
   avatarText: { color: '#f59e0b', fontSize: 24, fontWeight: 'bold' },
-  username: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+  username: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 2 },
+  fullName: { color: '#aaa', fontSize: 14, marginBottom: 2 },
   email: { color: '#888', fontSize: 13, marginBottom: 8 },
   badgeRow: { flexDirection: 'row', gap: 8 },
   roleBadge: { backgroundColor: '#2a1f00', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
