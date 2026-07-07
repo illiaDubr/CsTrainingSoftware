@@ -11,6 +11,29 @@ export const getRoutinesController = async (req: AuthRequest, res: Response, nex
   } catch (err) { next(err); }
 };
 
+export const getPersonalRoutinesController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const routines = await routinesService.getPersonalRoutines(req.user!.userId);
+    res.json({ success: true, data: routines });
+  } catch (err) { next(err); }
+};
+
+export const getPlayerPersonalRoutinesController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const routines = await routinesService.getPersonalRoutinesForCoach(req.user!.userId, Number(req.params.playerId));
+    res.json({ success: true, data: routines });
+  } catch (err) { next(err); }
+};
+
+export const createPersonalRoutineController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { title, description, priority } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: 'title is required' });
+    const routine = await routinesService.createPersonalRoutine(req.user!.userId, { title, description, priority });
+    res.status(201).json({ success: true, data: routine });
+  } catch (err) { next(err); }
+};
+
 export const createRoutineController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { group_id, title, description, priority } = req.body;

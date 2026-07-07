@@ -15,6 +15,7 @@ export default function EditProfileScreen() {
   const user = useAppSelector(state => state.auth.user);
 
   const [username, setUsername] = useState(user?.username ?? '');
+  const [fullName, setFullName] = useState(user?.full_name ?? '');
   const [inGameRole, setInGameRole] = useState<string | null>(user?.in_game_role ?? null);
   const [bio, setBio] = useState(user?.bio ?? '');
   const [saving, setSaving] = useState(false);
@@ -36,6 +37,7 @@ export default function EditProfileScreen() {
     try {
       const updated = await usersService.updateMe({
         username: trimmedName,
+        full_name: fullName.trim() || null,
         in_game_role: inGameRole,
         bio: bio.trim() || null,
       });
@@ -63,7 +65,7 @@ export default function EditProfileScreen() {
           </View>
         ) : null}
 
-        <Text style={styles.label}>Имя</Text>
+        <Text style={styles.label}>Ник</Text>
         <TextInput
           style={styles.input}
           placeholder="Твой ник"
@@ -71,6 +73,16 @@ export default function EditProfileScreen() {
           value={username}
           onChangeText={(v) => { setUsername(v); if (error) setError(null); }}
           autoCapitalize="none"
+          editable={!saving}
+        />
+
+        <Text style={styles.label}>Имя (необязательно)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Как тебя зовут"
+          placeholderTextColor="#555"
+          value={fullName}
+          onChangeText={(v) => { setFullName(v); if (error) setError(null); }}
           editable={!saving}
         />
 

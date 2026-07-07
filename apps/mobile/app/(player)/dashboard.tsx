@@ -71,6 +71,7 @@ export default function PlayerDashboard() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.username}>{user?.username}</Text>
+          {user?.full_name ? <Text style={styles.fullName}>{user.full_name}</Text> : null}
           <View style={styles.badgeRow}>
             <View style={styles.roleBadge}>
               <Text style={styles.roleText}>{roleLabel ?? 'Игрок'}</Text>
@@ -81,6 +82,20 @@ export default function PlayerDashboard() {
           ) : (
             <Text style={styles.bioEmpty}>Расскажи о себе в профиле</Text>
           )}
+        </View>
+        <Text style={styles.chevron}>›</Text>
+      </TouchableOpacity>
+
+      {/* Индивидуальная рутина */}
+      <TouchableOpacity
+        style={styles.routineTile}
+        activeOpacity={0.7}
+        onPress={() => router.push('/(player)/my-routines')}
+      >
+        <Text style={styles.routineTileIcon}>🔁</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.routineTileName}>Моя рутина</Text>
+          <Text style={styles.routineTileHint}>Личные ежедневные задания</Text>
         </View>
         <Text style={styles.chevron}>›</Text>
       </TouchableOpacity>
@@ -121,7 +136,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
   profileCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
-    borderRadius: 16, padding: 16, marginBottom: 28, borderWidth: 1, borderColor: '#2a2d3e',
+    borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#2a2d3e',
   },
   avatar: {
     width: 56, height: 56, borderRadius: 28, backgroundColor: '#2a1f00',
@@ -129,13 +144,21 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#f59e0b',
   },
   avatarText: { color: '#f59e0b', fontSize: 24, fontWeight: 'bold' },
-  username: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+  username: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 2 },
+  fullName: { color: '#aaa', fontSize: 13, marginBottom: 4 },
   badgeRow: { flexDirection: 'row', marginBottom: 6 },
   roleBadge: { backgroundColor: '#2a1f00', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 3 },
   roleText: { color: '#f59e0b', fontSize: 11, fontWeight: '600' },
   bio: { color: '#888', fontSize: 12, lineHeight: 16 },
   bioEmpty: { color: '#555', fontSize: 12, fontStyle: 'italic' },
   chevron: { color: '#555', fontSize: 24, marginLeft: 8 },
+  routineTile: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
+    borderRadius: 16, borderWidth: 1, borderColor: '#2a2d3e', padding: 16, marginBottom: 28,
+  },
+  routineTileIcon: { fontSize: 26, marginRight: 14 },
+  routineTileName: { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  routineTileHint: { color: '#666', fontSize: 12 },
   sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14 },
   tile: {

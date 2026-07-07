@@ -6,6 +6,21 @@ export const routinesService = {
     return data.data;
   },
 
+  async getMyPersonalRoutines() {
+    const { data } = await apiClient.get('/routines/personal');
+    return data.data;
+  },
+
+  async getPlayerPersonalRoutines(playerId: number) {
+    const { data } = await apiClient.get(`/routines/personal/${playerId}`);
+    return data.data;
+  },
+
+  async createPersonalRoutine(dto: { title: string; description?: string; priority: string }) {
+    const { data } = await apiClient.post('/routines/personal', dto);
+    return data.data;
+  },
+
   async createRoutine(dto: { group_id: number; title: string; description?: string; priority: string }) {
     const { data } = await apiClient.post('/routines', dto);
     return data.data;

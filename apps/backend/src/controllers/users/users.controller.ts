@@ -13,10 +13,11 @@ export const getMeController = async (req: AuthRequest, res: Response, next: Nex
 
 export const updateMeController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { username, in_game_role, bio } = req.body;
+    const { username, full_name, in_game_role, bio } = req.body;
 
-    const dto: { username?: string; in_game_role?: string | null; bio?: string | null } = {};
+    const dto: { username?: string; full_name?: string | null; in_game_role?: string | null; bio?: string | null } = {};
     if (username !== undefined) dto.username = username;
+    if (full_name !== undefined) dto.full_name = full_name || null;
     if (in_game_role !== undefined) dto.in_game_role = in_game_role || null;
     if (bio !== undefined) dto.bio = bio || null;
 

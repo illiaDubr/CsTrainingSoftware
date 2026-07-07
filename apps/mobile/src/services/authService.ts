@@ -10,8 +10,16 @@ export const authService = {
     return { user, accessToken };
   },
 
-  async register(email: string, username: string, password: string, role: 'player' | 'coach') {
-    const { data } = await apiClient.post('/auth/register', { email, username, password, role });
+  async register(dto: {
+    email: string;
+    username: string;
+    password: string;
+    role: 'player' | 'coach';
+    full_name?: string | null;
+    in_game_role?: string | null;
+    bio?: string | null;
+  }) {
+    const { data } = await apiClient.post('/auth/register', dto);
     const { user, accessToken, refreshToken } = data.data;
     await storage.setItem('access_token', accessToken);
     await storage.setItem('refresh_token', refreshToken);
