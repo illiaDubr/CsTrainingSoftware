@@ -11,6 +11,22 @@ export const getMeController = async (req: AuthRequest, res: Response, next: Nex
   }
 };
 
+export const updateMeController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { username, in_game_role, bio } = req.body;
+
+    const dto: { username?: string; in_game_role?: string | null; bio?: string | null } = {};
+    if (username !== undefined) dto.username = username;
+    if (in_game_role !== undefined) dto.in_game_role = in_game_role || null;
+    if (bio !== undefined) dto.bio = bio || null;
+
+    const user = await usersService.updateMe(req.user!.userId, dto);
+    res.json({ success: true, data: user });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getAllUsersController = async (_req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const users = await usersService.getAllUsers();

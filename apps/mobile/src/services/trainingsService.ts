@@ -17,6 +17,16 @@ export const trainingsService = {
     return data.data;
   },
 
+  async updateTraining(id: number, dto: {
+    title?: string;
+    description?: string;
+    scheduled_at?: string;
+    duration_minutes?: number;
+  }) {
+    const { data } = await apiClient.patch(`/trainings/${id}`, dto);
+    return data.data;
+  },
+
   async deleteTraining(id: number) {
     const { data } = await apiClient.delete(`/trainings/${id}`);
     return data.data;

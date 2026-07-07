@@ -71,7 +71,11 @@ export default function CoachGroupTrainingsScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
           renderItem={({ item }) => (
-            <TrainingCard training={item} onDelete={() => handleDelete(item.id)} />
+            <TrainingCard
+              training={item}
+              onEdit={() => router.push(`/(coach)/edit-training?groupId=${id}&trainingId=${item.id}`)}
+              onDelete={() => handleDelete(item.id)}
+            />
           )}
         />
       )}

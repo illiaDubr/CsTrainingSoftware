@@ -3,10 +3,11 @@ import { Training } from '../../types';
 
 interface Props {
   training: Training;
+  onEdit?: () => void;
   onDelete?: () => void;
 }
 
-export function TrainingCard({ training, onDelete }: Props) {
+export function TrainingCard({ training, onEdit, onDelete }: Props) {
   const date = new Date(training.scheduled_at);
   const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
@@ -28,8 +29,13 @@ export function TrainingCard({ training, onDelete }: Props) {
           ) : null}
         </View>
       </View>
+      {onEdit ? (
+        <TouchableOpacity onPress={onEdit} style={styles.actionBtn}>
+          <Text style={styles.editText}>✎</Text>
+        </TouchableOpacity>
+      ) : null}
       {onDelete ? (
-        <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
+        <TouchableOpacity onPress={onDelete} style={styles.actionBtn}>
           <Text style={styles.deleteText}>✕</Text>
         </TouchableOpacity>
       ) : null}
@@ -53,6 +59,7 @@ const styles = StyleSheet.create({
   description: { color: '#888', fontSize: 12, marginBottom: 6 },
   meta: { flexDirection: 'row' },
   metaText: { color: '#666', fontSize: 12 },
-  deleteBtn: { padding: 8 },
+  actionBtn: { padding: 8 },
+  editText: { color: '#f59e0b', fontSize: 16 },
   deleteText: { color: '#666', fontSize: 16 },
 });
