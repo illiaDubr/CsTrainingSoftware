@@ -2,11 +2,14 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 type UserRole = 'admin' | 'coach' | 'player';
 
-interface AuthUser {
+export interface AuthUser {
   id: number;
   email: string;
   username: string;
   role: UserRole;
+  in_game_role?: string | null;
+  bio?: string | null;
+  avatar_url?: string | null;
 }
 
 interface AuthState {
@@ -30,6 +33,11 @@ const authSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.isAuthenticated = true;
     },
+    updateProfile: (state, action: PayloadAction<Partial<AuthUser>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+      }
+    },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
@@ -38,5 +46,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, updateProfile, logout } = authSlice.actions;
 export default authSlice.reducer;
