@@ -25,17 +25,13 @@ export default function AddMemberScreen() {
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Player[]>([]);
-  const [searching, setSearching] = useState(false);
+  const [searching, setSearching] = useState(true);
   const [addingId, setAddingId] = useState<number | null>(null);
 
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed.length < 2) {
-      setResults([]);
-      setSearching(false);
-      return;
-    }
 
+    // Пустой запрос — сразу грузим полный список, при вводе — с debounce
     const timeout = setTimeout(async () => {
       setSearching(true);
 
@@ -47,7 +43,7 @@ export default function AddMemberScreen() {
       } finally {
         setSearching(false);
       }
-    }, 300);
+    }, trimmed ? 300 : 0);
 
     return () => clearTimeout(timeout);
   }, [query]);
@@ -120,11 +116,7 @@ export default function AddMemberScreen() {
         )}
         ListEmptyComponent={
           !searching ? (
-            <Text style={styles.emptyText}>
-              {query.trim().length < 2
-                ? 'Введи минимум 2 символа для поиска'
-                : 'Игроков не найдено'}
-            </Text>
+            <Text style={styles.emptyText}>Игроков не найдено</Text>
           ) : null
         }
       />
