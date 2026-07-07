@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { showAlert, showConfirm } from '../../../src/utils/alert';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { groupsService } from '../../../src/services/groupsService';
 import { tasksService } from '../../../src/services/tasksService';
@@ -69,42 +70,36 @@ export default function CoachGroupScreen() {
   };
 
   const handleDeleteTraining = (trainingId: number) => {
-    Alert.alert('Удалить тренировку?', '', [
-      { text: 'Отмена', style: 'cancel' },
-      {
-        text: 'Удалить', style: 'destructive',
-        onPress: async () => {
-          await trainingsService.deleteTraining(trainingId);
-          loadData();
-        },
-      },
-    ]);
+    showConfirm('Удалить тренировку?', undefined, async () => {
+      try {
+        await trainingsService.deleteTraining(trainingId);
+        loadData();
+      } catch {
+        showAlert('Ошибка', 'Не удалось удалить тренировку');
+      }
+    });
   };
 
   const handleDeleteMaterial = (materialId: number) => {
-    Alert.alert('Удалить материал?', '', [
-      { text: 'Отмена', style: 'cancel' },
-      {
-        text: 'Удалить', style: 'destructive',
-        onPress: async () => {
-          await materialsService.deleteMaterial(materialId);
-          loadData();
-        },
-      },
-    ]);
+    showConfirm('Удалить материал?', undefined, async () => {
+      try {
+        await materialsService.deleteMaterial(materialId);
+        loadData();
+      } catch {
+        showAlert('Ошибка', 'Не удалось удалить материал');
+      }
+    });
   };
 
   const handleDeactivateRoutine = (routineId: number) => {
-    Alert.alert('Удалить рутину?', 'Задание перестанет появляться у игроков', [
-      { text: 'Отмена', style: 'cancel' },
-      {
-        text: 'Удалить', style: 'destructive',
-        onPress: async () => {
-          await routinesService.deactivateRoutine(routineId);
-          loadData();
-        },
-      },
-    ]);
+    showConfirm('Удалить рутину?', 'Задание перестанет появляться у игроков', async () => {
+      try {
+        await routinesService.deactivateRoutine(routineId);
+        loadData();
+      } catch {
+        showAlert('Ошибка', 'Не удалось удалить рутину');
+      }
+    });
   };
 
   if (loading) {
@@ -237,15 +232,15 @@ export default function CoachGroupScreen() {
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.memberCard}
-                onPress={() => router.push(`/(coach)/player/${item.id}?username=${item.username}&email=${item.email}`)}
+                onPress={() => router.push(`/(coach)/player/${item.id}?username=${encodeURIComponent(item.username)}&email=${encodeURIComponent(item.email)}`)}
                 activeOpacity={0.7}
              >
                 <View style={styles.memberAvatar}>
                   <Text style={styles.memberAvatarText}>{item.username[0].toUpperCase()}</Text>
                 </View>
-               <View style={{ flex: 1 }}>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.memberName}>{item.username}</Text>
-      <            Text style={styles.memberEmail}>{item.email}</Text>
+                  <Text style={styles.memberEmail}>{item.email}</Text>
                 </View>
                 <Text style={{ color: '#555', fontSize: 20 }}>›</Text>
               </TouchableOpacity>

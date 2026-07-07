@@ -62,7 +62,7 @@ export default function PlayerDashboard() {
           <Text style={styles.subtitle}>Твои группы</Text>
       </View>
         <TouchableOpacity onPress={() => router.push('/(player)/profile')} style={styles.profileBtn}>
-          <Text style={styles.profileBtnText}>{user?.username[0].toUpperCase()}</Text>
+          <Text style={styles.profileBtnText}>{user?.username?.[0]?.toUpperCase()}</Text>
         </TouchableOpacity>
     </View>
   

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { showAlert } from '../../src/utils/alert';
 import { useRouter } from 'expo-router';
 import { groupsService } from '../../src/services/groupsService';
 
@@ -11,7 +12,7 @@ export default function CreateGroupScreen() {
 
   const handleCreate = async () => {
     if (!name.trim()) {
-      Alert.alert('Ошибка', 'Введи название группы');
+      showAlert('Ошибка', 'Введи название группы');
       return;
     }
 
@@ -20,7 +21,7 @@ export default function CreateGroupScreen() {
       await groupsService.createGroup(name.trim(), description.trim() || undefined);
       router.back();
     } catch {
-      Alert.alert('Ошибка', 'Не удалось создать группу');
+      showAlert('Ошибка', 'Не удалось создать группу');
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { showAlert } from '../../src/utils/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { materialsService } from '../../src/services/materialsService';
 
@@ -22,7 +23,7 @@ export default function CreateMaterialScreen() {
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      Alert.alert('Ошибка', 'Введи название материала');
+      showAlert('Ошибка', 'Введи название материала');
       return;
     }
 
@@ -37,7 +38,7 @@ export default function CreateMaterialScreen() {
       });
       router.back();
     } catch {
-      Alert.alert('Ошибка', 'Не удалось добавить материал');
+      showAlert('Ошибка', 'Не удалось добавить материал');
     } finally {
       setLoading(false);
     }

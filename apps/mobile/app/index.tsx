@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import { useAppDispatch } from '../src/hooks/useAppDispatch';
 import { setCredentials } from '../src/store/slices/authSlice';
 import { apiClient } from '../src/services/apiClient';
