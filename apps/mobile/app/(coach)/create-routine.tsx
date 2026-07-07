@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { showAlert } from '../../src/utils/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { routinesService } from '../../src/services/routinesService';
 
@@ -20,7 +21,7 @@ export default function CreateRoutineScreen() {
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      Alert.alert('Ошибка', 'Введи название задания');
+      showAlert('Ошибка', 'Введи название задания');
       return;
     }
     setLoading(true);
@@ -33,7 +34,7 @@ export default function CreateRoutineScreen() {
       });
       router.back();
     } catch {
-      Alert.alert('Ошибка', 'Не удалось создать рутину');
+      showAlert('Ошибка', 'Не удалось создать рутину');
     } finally {
       setLoading(false);
     }

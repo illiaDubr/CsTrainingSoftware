@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { showAlert } from '../../src/utils/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { trainingsService } from '../../src/services/trainingsService';
 
@@ -16,7 +17,7 @@ export default function CreateTrainingScreen() {
 
   const handleCreate = async () => {
     if (!title.trim() || !date.trim() || !time.trim()) {
-      Alert.alert('Ошибка', 'Заполни название, дату и время');
+      showAlert('Ошибка', 'Заполни название, дату и время');
       return;
     }
 
@@ -24,12 +25,21 @@ export default function CreateTrainingScreen() {
     const [day, month, year] = date.split('.').map(Number);
     const [hours, minutes] = time.split(':').map(Number);
 
-    if (!day || !month || !year || isNaN(hours) || isNaN(minutes)) {
-      Alert.alert('Ошибка', 'Проверь формат даты (ДД.ММ.ГГГГ) и времени (ЧЧ:ММ)');
+    if (
+      !day || !month || !year || isNaN(hours) || isNaN(minutes) ||
+      day < 1 || day > 31 || month < 1 || month > 12 || year < 2000 ||
+      hours < 0 || hours > 23 || minutes < 0 || minutes > 59
+    ) {
+      showAlert('Ошибка', 'Проверь формат даты (ДД.ММ.ГГГГ) и времени (ЧЧ:ММ)');
       return;
     }
 
-    const scheduledAt = new Date(year, month - 1, day, hours, minutes).toISOString();
+    const parsed = new Date(year, month - 1, day, hours, minutes);
+    if (parsed.getDate() !== day || parsed.getMonth() !== month - 1) {
+      showAlert('Ошибка', 'Такой даты не существует');
+      return;
+    }
+    const scheduledAt = parsed.toISOString();
 
     setLoading(true);
     try {
@@ -42,7 +52,7 @@ export default function CreateTrainingScreen() {
       });
       router.back();
     } catch {
-      Alert.alert('Ошибка', 'Не удалось создать тренировку');
+      showAlert('Ошибка', 'Не удалось создать тренировку');
     } finally {
       setLoading(false);
     }

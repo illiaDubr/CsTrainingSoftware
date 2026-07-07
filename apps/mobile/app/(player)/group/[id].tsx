@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { showAlert } from '../../../src/utils/alert';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { tasksService } from '../../../src/services/tasksService';
 import { trainingsService } from '../../../src/services/trainingsService';
@@ -66,7 +67,7 @@ export default function PlayerGroupScreen() {
       await routinesService.updateProgress(routine.id, newStatus);
       await loadData();
     } catch {
-      Alert.alert('Ошибка', 'Не удалось обновить статус');
+      showAlert('Ошибка', 'Не удалось обновить статус');
     } finally {
       setTogglingId(null);
     }

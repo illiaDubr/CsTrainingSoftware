@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { showAlert, showConfirm } from '../../../src/utils/alert';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { tasksService } from '../../../src/services/tasksService';
 
@@ -49,21 +50,14 @@ export default function CoachTaskDetailScreen() {
   );
 
   const handleDelete = () => {
-    Alert.alert('Удалить задачу?', 'Это действие нельзя отменить', [
-      { text: 'Отмена', style: 'cancel' },
-      {
-        text: 'Удалить',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await tasksService.deleteTask(Number(id));
-            router.back();
-          } catch {
-            Alert.alert('Ошибка', 'Не удалось удалить задачу');
-          }
-        },
-      },
-    ]);
+    showConfirm('Удалить задачу?', 'Это действие нельзя отменить', async () => {
+      try {
+        await tasksService.deleteTask(Number(id));
+        router.back();
+      } catch {
+        showAlert('Ошибка', 'Не удалось удалить задачу');
+      }
+    });
   };
 
   if (loading) {

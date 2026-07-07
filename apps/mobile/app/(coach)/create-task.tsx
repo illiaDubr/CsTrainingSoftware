@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { showAlert } from '../../src/utils/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { tasksService } from '../../src/services/tasksService';
 
@@ -20,7 +21,7 @@ export default function CreateTaskScreen() {
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      Alert.alert('Ошибка', 'Введи название задачи');
+      showAlert('Ошибка', 'Введи название задачи');
       return;
     }
 
@@ -34,7 +35,7 @@ export default function CreateTaskScreen() {
       });
       router.back();
     } catch {
-      Alert.alert('Ошибка', 'Не удалось создать задачу');
+      showAlert('Ошибка', 'Не удалось создать задачу');
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, ScrollView } from 'react-native';
+import { showAlert } from '../../../src/utils/alert';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { tasksService } from '../../../src/services/tasksService';
 import { Task, TaskStatus } from '../../../src/types';
@@ -31,7 +32,7 @@ export default function TaskDetailScreen() {
       setTask(data);
       setNote(data.progress?.note || '');
     } catch {
-      Alert.alert('Ошибка', 'Не удалось загрузить задачу');
+      showAlert('Ошибка', 'Не удалось загрузить задачу');
     } finally {
       setLoading(false);
     }
@@ -49,7 +50,7 @@ export default function TaskDetailScreen() {
       await tasksService.updateProgress(Number(id), status, note);
       await loadTask();
     } catch {
-      Alert.alert('Ошибка', 'Не удалось обновить статус');
+      showAlert('Ошибка', 'Не удалось обновить статус');
     } finally {
       setSaving(false);
     }
@@ -60,9 +61,9 @@ export default function TaskDetailScreen() {
     setSaving(true);
     try {
       await tasksService.updateProgress(Number(id), task.progress.status, note);
-      Alert.alert('Готово', 'Заметка сохранена');
+      showAlert('Готово', 'Заметка сохранена');
     } catch {
-      Alert.alert('Ошибка', 'Не удалось сохранить заметку');
+      showAlert('Ошибка', 'Не удалось сохранить заметку');
     } finally {
       setSaving(false);
     }

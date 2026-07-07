@@ -7,8 +7,8 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { showAlert } from '../../src/utils/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { usersService } from '../../src/services/usersService';
 import { groupsService } from '../../src/services/groupsService';
@@ -29,14 +29,21 @@ export default function AddMemberScreen() {
   const [addingId, setAddingId] = useState<number | null>(null);
 
   useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+
     const timeout = setTimeout(async () => {
       setSearching(true);
 
       try {
-        const data = await usersService.searchPlayers(query.trim());
+        const data = await usersService.searchPlayers(trimmed);
         setResults(data);
-      } catch (err) {
-        console.error(err);
+      } catch {
+        setResults([]);
       } finally {
         setSearching(false);
       }
@@ -50,12 +57,12 @@ export default function AddMemberScreen() {
 
     try {
       await groupsService.addMember(Number(groupId), player.id);
-      Alert.alert('Готово', `${player.username} добавлен в группу`);
+      showAlert('Готово', `${player.username} добавлен в группу`);
       router.back();
     } catch (err: any) {
       const message =
         err.response?.data?.message || 'Не удалось добавить игрока';
-      Alert.alert('Ошибка', message);
+      showAlert('Ошибка', message);
     } finally {
       setAddingId(null);
     }
@@ -114,7 +121,9 @@ export default function AddMemberScreen() {
         ListEmptyComponent={
           !searching ? (
             <Text style={styles.emptyText}>
-              Игроков не найдено
+              {query.trim().length < 2
+                ? 'Введи минимум 2 символа для поиска'
+                : 'Игроков не найдено'}
             </Text>
           ) : null
         }

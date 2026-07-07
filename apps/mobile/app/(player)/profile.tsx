@@ -22,7 +22,6 @@ export default function PlayerProfileScreen() {
         try {
           const data = await statsService.getPlayerActivity(user!.id);
           setActivity(data.activity);
-          console.log('Activity dates:', data.activity.map((a: any) => a.date));
           setTotal(data.total);
         } catch {
           // тихо
@@ -63,7 +62,7 @@ export default function PlayerProfileScreen() {
 
       <View style={styles.userCard}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.username[0].toUpperCase()}</Text>
+          <Text style={styles.avatarText}>{user?.username?.[0]?.toUpperCase()}</Text>
         </View>
         <View>
           <Text style={styles.username}>{user?.username}</Text>
@@ -101,5 +100,5 @@ const styles = StyleSheet.create({
   roleBadge: { backgroundColor: '#2a1f00', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
   roleText: { color: '#f59e0b', fontSize: 11, fontWeight: '600' },
   backBtn: { paddingVertical: 4 },
-backText: { color: '#f59e0b', fontSize: 15 },
+  backText: { color: '#f59e0b', fontSize: 15 },
 });
