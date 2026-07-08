@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
+  View, Text, TextInput,
   StyleSheet, KeyboardAvoidingView, Platform,
-  ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAppDispatch } from '../../src/hooks/useAppDispatch';
 import { setCredentials } from '../../src/store/slices/authSlice';
 import { authService } from '../../src/services/authService';
+import { GradientButton } from '../../src/components/ui/GradientButton';
+import { colors, gradients, radius, spacing, presets } from '../../src/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -17,6 +20,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [focused, setFocused] = useState<string | null>(null);
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim().toLowerCase();
@@ -42,101 +46,119 @@ export default function LoginScreen() {
     }
   };
 
+  const inputStyle = (name: string) => [
+    styles.input,
+    focused === name && styles.inputFocused,
+  ];
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.inner}>
-        <Text style={styles.logo}>Los Espada Training</Text>
-        <Text style={styles.subtitle}>Войди в свой аккаунт</Text>
-
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
+    <LinearGradient colors={gradients.hero} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.inner}>
+          <View style={styles.logoBadge}>
+            <Text style={styles.logoBadgeText}>LE</Text>
           </View>
-        ) : null}
+          <Text style={styles.logo}>Los Espada Training</Text>
+          <Text style={styles.subtitle}>Войди в свой аккаунт</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#555"
-          value={email}
-          onChangeText={(v) => { setEmail(v); if (error) setError(null); }}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
-          editable={!loading}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Пароль"
-          placeholderTextColor="#555"
-          value={password}
-          onChangeText={(v) => { setPassword(v); if (error) setError(null); }}
-          secureTextEntry
-          autoComplete="current-password"
-          editable={!loading}
-          onSubmitEditing={handleLogin}
-        />
+          <View style={styles.card}>
+            {error ? (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading
-            ? <ActivityIndicator color="#000" />
-            : <Text style={styles.buttonText}>Войти</Text>
-          }
-        </TouchableOpacity>
+            <TextInput
+              style={inputStyle('email')}
+              placeholder="Email"
+              placeholderTextColor={colors.textFaint}
+              value={email}
+              onChangeText={(v) => { setEmail(v); if (error) setError(null); }}
+              onFocus={() => setFocused('email')}
+              onBlur={() => setFocused(null)}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              editable={!loading}
+            />
+            <TextInput
+              style={inputStyle('password')}
+              placeholder="Пароль"
+              placeholderTextColor={colors.textFaint}
+              value={password}
+              onChangeText={(v) => { setPassword(v); if (error) setError(null); }}
+              onFocus={() => setFocused('password')}
+              onBlur={() => setFocused(null)}
+              secureTextEntry
+              autoComplete="current-password"
+              editable={!loading}
+              onSubmitEditing={handleLogin}
+            />
 
-        <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
-          <Text style={styles.link}>Нет аккаунта? Зарегистрироваться</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+            <GradientButton
+              title="Войти"
+              onPress={handleLogin}
+              loading={loading}
+              style={styles.button}
+            />
+          </View>
+
+          <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
+            <Text style={styles.link}>
+              Нет аккаунта? <Text style={styles.linkAccent}>Зарегистрироваться</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
+  container: { flex: 1 },
+  flex: { flex: 1 },
   inner: {
     flex: 1, justifyContent: 'center', paddingHorizontal: 28,
     width: '100%', maxWidth: 440, alignSelf: 'center',
   },
-  logo: { fontSize: 32, fontWeight: 'bold', color: '#f59e0b', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#888', textAlign: 'center', marginBottom: 32 },
-  errorBox: {
-    backgroundColor: '#2a1215',
+  logoBadge: {
+    width: 64, height: 64, borderRadius: 20, alignSelf: 'center',
+    backgroundColor: colors.primarySoft, borderWidth: 1, borderColor: colors.borderAccent,
+    justifyContent: 'center', alignItems: 'center', marginBottom: spacing.lg,
+  },
+  logoBadgeText: { color: colors.primary, fontSize: 24, fontWeight: '900', letterSpacing: 1 },
+  logo: {
+    fontSize: 28, fontWeight: '800', color: colors.text,
+    textAlign: 'center', marginBottom: spacing.sm, letterSpacing: -0.5,
+  },
+  subtitle: { fontSize: 15, color: colors.textSecondary, textAlign: 'center', marginBottom: spacing.xxxl },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: '#ef4444',
-    borderRadius: 10,
+    borderColor: colors.border,
+    padding: spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  errorBox: {
+    backgroundColor: colors.dangerSoft,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    borderRadius: radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
-  errorText: { color: '#ef4444', fontSize: 13, textAlign: 'center' },
+  errorText: { color: colors.danger, fontSize: 13, textAlign: 'center' },
   input: {
-    backgroundColor: '#1a1d2e',
-    borderWidth: 1,
-    borderColor: '#2a2d3e',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    color: '#fff',
-    fontSize: 15,
+    ...presets.input,
     marginBottom: 14,
   },
-  button: {
-    backgroundColor: '#f59e0b',
-    borderRadius: 10,
-    paddingVertical: 15,
-    alignItems: 'center',
-    marginTop: 6,
-    marginBottom: 20,
-  },
-  buttonDisabled: { opacity: 0.7 },
-  buttonText: { color: '#000', fontWeight: '700', fontSize: 16 },
-  link: { color: '#f59e0b', textAlign: 'center', fontSize: 14 },
+  inputFocused: { borderColor: colors.primary },
+  button: { marginTop: 6 },
+  link: { color: colors.textSecondary, textAlign: 'center', fontSize: 14 },
+  linkAccent: { color: colors.primary, fontWeight: '700' },
 });

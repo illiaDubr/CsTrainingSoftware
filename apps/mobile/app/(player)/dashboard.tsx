@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/hooks/useAppDispatch';
 import { updateProfile } from '../../src/store/slices/authSlice';
@@ -7,6 +8,7 @@ import { groupsService } from '../../src/services/groupsService';
 import { usersService } from '../../src/services/usersService';
 import { Group } from '../../src/types';
 import { ROLE_LABELS } from '../../src/constants';
+import { colors, gradients, radius, shadows } from '../../src/theme';
 
 export default function PlayerDashboard() {
   const router = useRouter();
@@ -62,28 +64,34 @@ export default function PlayerDashboard() {
     >
       {/* Шапка-профиль */}
       <TouchableOpacity
-        style={styles.profileCard}
         activeOpacity={0.8}
         onPress={() => router.push('/(player)/profile')}
       >
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.username?.[0]?.toUpperCase()}</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.username}>{user?.username}</Text>
-          {user?.full_name ? <Text style={styles.fullName}>{user.full_name}</Text> : null}
-          <View style={styles.badgeRow}>
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>{roleLabel ?? 'Игрок'}</Text>
-            </View>
+        <LinearGradient
+          colors={gradients.surface}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.profileCard}
+        >
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{user?.username?.[0]?.toUpperCase()}</Text>
           </View>
-          {user?.bio ? (
-            <Text style={styles.bio} numberOfLines={2}>{user.bio}</Text>
-          ) : (
-            <Text style={styles.bioEmpty}>Расскажи о себе в профиле</Text>
-          )}
-        </View>
-        <Text style={styles.chevron}>›</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.username}>{user?.username}</Text>
+            {user?.full_name ? <Text style={styles.fullName}>{user.full_name}</Text> : null}
+            <View style={styles.badgeRow}>
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleText}>{(roleLabel ?? 'Игрок').toUpperCase()}</Text>
+              </View>
+            </View>
+            {user?.bio ? (
+              <Text style={styles.bio} numberOfLines={2}>{user.bio}</Text>
+            ) : (
+              <Text style={styles.bioEmpty}>Расскажи о себе в профиле</Text>
+            )}
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </LinearGradient>
       </TouchableOpacity>
 
       {/* Индивидуальная рутина */}
@@ -131,49 +139,58 @@ export default function PlayerDashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
   content: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 40, width: '100%', maxWidth: 700, alignSelf: 'center' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   profileCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
-    borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#2a2d3e',
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: radius.xl, padding: 18, marginBottom: 14,
+    borderWidth: 1, borderColor: colors.borderStrong,
+    ...shadows.card,
   },
   avatar: {
-    width: 56, height: 56, borderRadius: 28, backgroundColor: '#2a1f00',
+    width: 58, height: 58, borderRadius: 29, backgroundColor: colors.primarySoft,
     justifyContent: 'center', alignItems: 'center', marginRight: 14,
-    borderWidth: 1, borderColor: '#f59e0b',
+    borderWidth: 1.5, borderColor: colors.primary,
   },
-  avatarText: { color: '#f59e0b', fontSize: 24, fontWeight: 'bold' },
-  username: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 2 },
-  fullName: { color: '#aaa', fontSize: 13, marginBottom: 4 },
+  avatarText: { color: colors.primary, fontSize: 24, fontWeight: '800' },
+  username: { color: colors.text, fontSize: 19, fontWeight: '800', marginBottom: 2, letterSpacing: -0.3 },
+  fullName: { color: '#A9B4C9', fontSize: 13, marginBottom: 4 },
   badgeRow: { flexDirection: 'row', marginBottom: 6 },
-  roleBadge: { backgroundColor: '#2a1f00', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 3 },
-  roleText: { color: '#f59e0b', fontSize: 11, fontWeight: '600' },
-  bio: { color: '#888', fontSize: 12, lineHeight: 16 },
-  bioEmpty: { color: '#555', fontSize: 12, fontStyle: 'italic' },
-  chevron: { color: '#555', fontSize: 24, marginLeft: 8 },
+  roleBadge: {
+    backgroundColor: colors.primarySoft, borderRadius: radius.full,
+    paddingHorizontal: 10, paddingVertical: 3,
+    borderWidth: 1, borderColor: colors.borderAccent,
+  },
+  roleText: { color: colors.primary, fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
+  bio: { color: colors.textSecondary, fontSize: 12, lineHeight: 16 },
+  bioEmpty: { color: colors.textFaint, fontSize: 12, fontStyle: 'italic' },
+  chevron: { color: colors.textFaint, fontSize: 24, marginLeft: 8 },
   routineTile: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
-    borderRadius: 16, borderWidth: 1, borderColor: '#2a2d3e', padding: 16, marginBottom: 28,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface,
+    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border,
+    padding: 16, marginBottom: 28,
+    ...shadows.subtle,
   },
   routineTileIcon: { fontSize: 26, marginRight: 14 },
-  routineTileName: { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 2 },
-  routineTileHint: { color: '#666', fontSize: 12 },
-  sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 14 },
+  routineTileName: { color: colors.text, fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  routineTileHint: { color: colors.textMuted, fontSize: 12 },
+  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800', marginBottom: 14, letterSpacing: -0.3 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14 },
   tile: {
     width: '48%',
-    backgroundColor: '#1a1d2e',
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: colors.border,
     padding: 16,
     minHeight: 110,
+    ...shadows.subtle,
   },
   tileIcon: { fontSize: 26, marginBottom: 10 },
-  tileName: { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 },
-  tileDescription: { color: '#666', fontSize: 12 },
+  tileName: { color: colors.text, fontSize: 15, fontWeight: '700', marginBottom: 4 },
+  tileDescription: { color: colors.textMuted, fontSize: 12 },
   empty: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 40 },
-  emptyText: { color: '#888', fontSize: 15, textAlign: 'center', marginBottom: 8 },
-  emptySubtext: { color: '#555', fontSize: 13, textAlign: 'center' },
+  emptyText: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 8 },
+  emptySubtext: { color: colors.textFaint, fontSize: 13, textAlign: 'center' },
 });

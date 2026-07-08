@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { MonthProgressDay } from '../../types';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#666', in_progress: '#3b82f6', completed: '#22c55e',
+  pending: '#748099', in_progress: '#3b82f6', completed: '#22c55e',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -37,7 +37,7 @@ interface Props {
 export function DayDetailModal({ visible, day, routineTitle, playerName, onClose }: Props) {
   if (!day) return null;
 
-  const statusColor = STATUS_COLORS[day.status] || '#666';
+  const statusColor = STATUS_COLORS[day.status] || '#748099';
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -82,12 +82,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center', paddingHorizontal: 24,
   },
   content: {
-    backgroundColor: '#1a1d2e', borderRadius: 16, padding: 20,
-    borderWidth: 1, borderColor: '#2a2d3e',
+    backgroundColor: '#151827', borderRadius: 16, padding: 20,
+    borderWidth: 1, borderColor: '#242A40',
   },
-  title: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  title: { color: '#F8FAFC', fontSize: 16, fontWeight: '700' },
   player: { color: '#f59e0b', fontSize: 13, fontWeight: '600', marginTop: 2 },
-  date: { color: '#888', fontSize: 13, marginTop: 2, marginBottom: 12 },
+  date: { color: '#94A3B8', fontSize: 13, marginTop: 2, marginBottom: 12 },
   statusBadge: {
     alignSelf: 'flex-start', borderWidth: 1, borderRadius: 8,
     paddingHorizontal: 10, paddingVertical: 4, marginBottom: 14,
@@ -97,17 +97,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginBottom: 12,
   },
-  label: { color: '#888', fontSize: 12, fontWeight: '600', marginBottom: 4 },
-  value: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  label: { color: '#94A3B8', fontSize: 12, fontWeight: '600', marginBottom: 4 },
+  value: { color: '#F8FAFC', fontSize: 13, fontWeight: '700' },
   note: {
-    color: '#ddd', fontSize: 13, lineHeight: 19,
-    backgroundColor: '#14172a', borderRadius: 10, padding: 12,
-    borderWidth: 1, borderColor: '#2a2d3e',
+    color: '#D6DEEB', fontSize: 13, lineHeight: 19,
+    backgroundColor: '#10131E', borderRadius: 10, padding: 12,
+    borderWidth: 1, borderColor: '#242A40',
   },
-  emptyNote: { color: '#555', fontSize: 13, fontStyle: 'italic' },
+  emptyNote: { color: '#5B677D', fontSize: 13, fontStyle: 'italic' },
   closeBtn: {
-    marginTop: 16, borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 10,
+    marginTop: 16, borderWidth: 1, borderColor: '#242A40', borderRadius: 10,
     paddingVertical: 12, alignItems: 'center',
   },
-  closeBtnText: { color: '#888', fontWeight: '600' },
+  closeBtnText: { color: '#94A3B8', fontWeight: '600' },
 });

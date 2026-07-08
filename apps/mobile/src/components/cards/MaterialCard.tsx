@@ -56,20 +56,23 @@ export function MaterialCard({ material, onDelete, onEdit }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e', borderRadius: 14,
-    padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#2a2d3e',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#151827', borderRadius: 16,
+    padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#242A40',
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
   iconBox: {
-    width: 44, height: 44, borderRadius: 10, backgroundColor: '#2a1f00',
+    width: 46, height: 46, borderRadius: 12, backgroundColor: 'rgba(245,158,11,0.14)',
+    borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)',
     justifyContent: 'center', alignItems: 'center', marginRight: 14,
   },
   icon: { fontSize: 18 },
   content: { flex: 1 },
-  title: { color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  description: { color: '#888', fontSize: 12, marginBottom: 4 },
-  type: { color: '#666', fontSize: 11 },
+  title: { color: '#F8FAFC', fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  description: { color: '#94A3B8', fontSize: 12, marginBottom: 4 },
+  type: { color: '#748099', fontSize: 11 },
   deleteBtn: { padding: 8 },
-  deleteText: { color: '#666', fontSize: 16 },
+  deleteText: { color: '#748099', fontSize: 16 },
   editBtn: { padding: 8 },
   editText: { color: '#f59e0b', fontSize: 15 },
 });

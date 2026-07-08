@@ -9,7 +9,7 @@ import { DayDetailModal } from '../../../src/components/ui/DayDetailModal';
 import { MonthProgressDay, Routine } from '../../../src/types';
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: '#666', medium: '#f59e0b', high: '#ef4444',
+  low: '#748099', medium: '#f59e0b', high: '#ef4444',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -19,7 +19,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#666',
+  pending: '#748099',
   in_progress: '#3b82f6',
   completed: '#22c55e',
 };
@@ -140,42 +140,42 @@ export default function CoachPlayerProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   content: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 60, width: '100%', maxWidth: 600, alignSelf: 'center' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 24 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 24, letterSpacing: -0.5 },
   userCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
-    borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#2a2d3e',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#151827',
+    borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#242A40',
   },
   avatar: {
-    width: 56, height: 56, borderRadius: 28, backgroundColor: '#2a1f00',
+    width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(245,158,11,0.14)',
     justifyContent: 'center', alignItems: 'center', marginRight: 14,
   },
   avatarText: { color: '#f59e0b', fontSize: 24, fontWeight: 'bold' },
-  username: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
-  email: { color: '#888', fontSize: 13, marginBottom: 8 },
+  username: { color: '#F8FAFC', fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+  email: { color: '#94A3B8', fontSize: 13, marginBottom: 8 },
   roleBadge: {
-    backgroundColor: '#2a1f00', borderRadius: 6,
+    backgroundColor: 'rgba(245,158,11,0.14)', borderRadius: 6,
     paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start',
   },
   roleText: { color: '#f59e0b', fontSize: 11, fontWeight: '600' },
-  sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginTop: 24, marginBottom: 14 },
-  emptyText: { color: '#666', fontSize: 14 },
+  sectionTitle: { color: '#F8FAFC', fontSize: 16, fontWeight: '700', marginTop: 24, marginBottom: 14 },
+  emptyText: { color: '#748099', fontSize: 14 },
   routineCard: {
-    backgroundColor: '#1a1d2e', borderRadius: 16, padding: 16,
-    marginBottom: 14, borderWidth: 1, borderColor: '#2a2d3e',
+    backgroundColor: '#151827', borderRadius: 16, padding: 16,
+    marginBottom: 14, borderWidth: 1, borderColor: '#242A40',
   },
   routineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   routineHeaderLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   priorityDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
-  routineTitle: { color: '#fff', fontSize: 15, fontWeight: '600', flex: 1 },
+  routineTitle: { color: '#F8FAFC', fontSize: 15, fontWeight: '600', flex: 1 },
   routineRate: { color: '#f59e0b', fontSize: 14, fontWeight: '700', marginLeft: 8 },
-  routineDescription: { color: '#888', fontSize: 12, marginBottom: 10 },
+  routineDescription: { color: '#94A3B8', fontSize: 12, marginBottom: 10 },
   todayRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8 },
-  todayLabel: { color: '#888', fontSize: 13 },
+  todayLabel: { color: '#94A3B8', fontSize: 13 },
   statusBadge: { borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   statusText: { fontSize: 11, fontWeight: '600' },
-  todayNote: { color: '#aaa', fontSize: 12, fontStyle: 'italic', marginTop: 6 },
+  todayNote: { color: '#A9B4C9', fontSize: 12, fontStyle: 'italic', marginTop: 6 },
 });

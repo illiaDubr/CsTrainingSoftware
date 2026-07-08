@@ -69,7 +69,7 @@ export default function EditProfileScreen() {
         <TextInput
           style={styles.input}
           placeholder="Твой ник"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={username}
           onChangeText={(v) => { setUsername(v); if (error) setError(null); }}
           autoCapitalize="none"
@@ -80,7 +80,7 @@ export default function EditProfileScreen() {
         <TextInput
           style={styles.input}
           placeholder="Как тебя зовут"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={fullName}
           onChangeText={(v) => { setFullName(v); if (error) setError(null); }}
           editable={!saving}
@@ -107,7 +107,7 @@ export default function EditProfileScreen() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Коротко расскажи о себе: стиль игры, любимые карты, опыт..."
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={bio}
           onChangeText={(v) => { setBio(v); if (error) setError(null); }}
           multiline
@@ -133,32 +133,35 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
   inner: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 60, width: '100%', maxWidth: 600, alignSelf: 'center' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 24 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 24, letterSpacing: -0.5 },
   errorBox: {
     backgroundColor: '#2a1215', borderWidth: 1, borderColor: '#ef4444',
     borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 16,
   },
   errorText: { color: '#ef4444', fontSize: 13, textAlign: 'center' },
-  label: { color: '#888', fontSize: 13, marginBottom: 10 },
+  label: { color: '#94A3B8', fontSize: 13, marginBottom: 10 },
   input: {
-    backgroundColor: '#1a1d2e', borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 10,
-    paddingHorizontal: 16, paddingVertical: 14, color: '#fff', fontSize: 15, marginBottom: 20,
+    backgroundColor: '#151827', borderWidth: 1, borderColor: '#242A40', borderRadius: 10,
+    paddingHorizontal: 16, paddingVertical: 14, color: '#F8FAFC', fontSize: 15, marginBottom: 20,
   },
   textArea: { minHeight: 110, textAlignVertical: 'top', marginBottom: 6 },
-  counter: { color: '#555', fontSize: 11, textAlign: 'right', marginBottom: 20 },
+  counter: { color: '#5B677D', fontSize: 11, textAlign: 'right', marginBottom: 20 },
   roleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
   roleBtn: {
     paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, borderWidth: 1,
-    borderColor: '#2a2d3e', backgroundColor: '#1a1d2e',
+    borderColor: '#242A40', backgroundColor: '#151827',
   },
-  roleBtnActive: { borderColor: '#f59e0b', backgroundColor: '#2a1f00' },
-  roleBtnText: { color: '#888', fontSize: 13, fontWeight: '600' },
+  roleBtnActive: { borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.14)' },
+  roleBtnText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
   roleBtnTextActive: { color: '#f59e0b' },
-  hint: { color: '#555', fontSize: 11, marginBottom: 20 },
-  button: { backgroundColor: '#f59e0b', borderRadius: 10, paddingVertical: 15, alignItems: 'center' },
+  hint: { color: '#5B677D', fontSize: 11, marginBottom: 20 },
+  button: {
+    backgroundColor: '#F59E0B', borderRadius: 12, paddingVertical: 15, alignItems: 'center',
+    shadowColor: '#F59E0B', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6,
+  },
   buttonDisabled: { opacity: 0.7 },
   buttonText: { color: '#000', fontWeight: '700', fontSize: 16 },
 });

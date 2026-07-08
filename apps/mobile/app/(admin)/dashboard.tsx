@@ -28,10 +28,10 @@ export default function PlayerDashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 8 },
+  container: { flex: 1, backgroundColor: '#0B0D14', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#F8FAFC', marginBottom: 8 },
   role: { fontSize: 14, color: '#f59e0b', marginBottom: 32 },
-  placeholder: { fontSize: 15, color: '#555', textAlign: 'center', marginBottom: 48 },
+  placeholder: { fontSize: 15, color: '#5B677D', textAlign: 'center', marginBottom: 48 },
   logoutBtn: { borderWidth: 1, borderColor: '#f59e0b', borderRadius: 10, paddingHorizontal: 32, paddingVertical: 12 },
   logoutText: { color: '#f59e0b', fontWeight: '600' },
 });

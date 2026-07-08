@@ -2,13 +2,13 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MonthProgressDay, TaskStatus } from '../../types';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#1e2235',
-  in_progress: '#1a3a6a',
-  completed: '#1a4a1a',
+  pending: '#1A1F32',
+  in_progress: 'rgba(59,130,246,0.30)',
+  completed: 'rgba(34,197,94,0.28)',
 };
 
 const STATUS_BORDER: Record<string, string> = {
-  pending: '#2a2d3e',
+  pending: '#242A40',
   in_progress: '#3b82f6',
   completed: '#22c55e',
 };
@@ -80,7 +80,7 @@ export function MonthGrid({ monthProgress, todayDate, onDayPress }: Props) {
                 style={[
                   styles.cell,
                   { backgroundColor: isFuture ? 'transparent' : STATUS_COLORS[status] },
-                  { borderColor: isToday ? '#f59e0b' : isFuture ? '#2a2d3e' : STATUS_BORDER[status] },
+                  { borderColor: isToday ? '#f59e0b' : isFuture ? '#242A40' : STATUS_BORDER[status] },
                   isToday && styles.cellToday,
                 ]}
               >
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', marginBottom: 4 },
   dayLabel: {
     width: CELL_SIZE, textAlign: 'center',
-    color: '#666', fontSize: 10, fontWeight: '600', marginBottom: 4,
+    color: '#748099', fontSize: 10, fontWeight: '600', marginBottom: 4,
   },
   cell: {
     width: CELL_SIZE, height: CELL_SIZE, borderRadius: 8,
@@ -119,11 +119,11 @@ const styles = StyleSheet.create({
   },
   emptyCell: { width: CELL_SIZE, height: CELL_SIZE, marginRight: 2 },
   cellToday: { borderWidth: 2 },
-  dayNum: { color: '#fff', fontSize: 11, fontWeight: '500' },
+  dayNum: { color: '#F8FAFC', fontSize: 11, fontWeight: '500' },
   noteDot: {
     position: 'absolute', top: 3, right: 3,
     width: 4, height: 4, borderRadius: 2, backgroundColor: '#f59e0b',
   },
   dayNumToday: { color: '#f59e0b', fontWeight: 'bold' },
-  dayNumFuture: { color: '#333' },
+  dayNumFuture: { color: '#3A4358' },
 });

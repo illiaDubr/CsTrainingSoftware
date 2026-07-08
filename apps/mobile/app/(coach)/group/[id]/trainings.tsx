@@ -5,6 +5,7 @@ import { trainingsService } from '../../../../src/services/trainingsService';
 import { TrainingCard } from '../../../../src/components/cards/TrainingCard';
 import { Training } from '../../../../src/types';
 import { showAlert, showConfirm } from '../../../../src/utils/alert';
+import { FAB } from '../../../../src/components/ui/FAB';
 
 export default function CoachGroupTrainingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -80,21 +81,19 @@ export default function CoachGroupTrainingsScreen() {
         />
       )}
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push(`/(coach)/create-training?groupId=${id}`)}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      <FAB onPress={() => router.push(`/(coach)/create-training?groupId=${id}`)} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117', paddingTop: 60, paddingHorizontal: 20 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14', paddingTop: 60, paddingHorizontal: 20 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 12 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 20, letterSpacing: -0.5 },
   list: { paddingBottom: 100 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { color: '#888', fontSize: 15 },
+  emptyText: { color: '#94A3B8', fontSize: 15 },
   fab: {
     position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28,
     backgroundColor: '#f59e0b', justifyContent: 'center', alignItems: 'center',

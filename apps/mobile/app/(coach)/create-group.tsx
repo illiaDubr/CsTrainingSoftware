@@ -39,7 +39,7 @@ export default function CreateGroupScreen() {
         <TextInput
           style={styles.input}
           placeholder="Название группы"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={name}
           onChangeText={setName}
         />
@@ -47,7 +47,7 @@ export default function CreateGroupScreen() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Описание (необязательно)"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={description}
           onChangeText={setDescription}
           multiline
@@ -66,18 +66,18 @@ export default function CreateGroupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
   inner: { flex: 1, paddingTop: 60, paddingHorizontal: 20 },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 28 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 28, letterSpacing: -0.5 },
   input: {
-    backgroundColor: '#1a1d2e',
+    backgroundColor: '#151827',
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: '#242A40',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    color: '#fff',
+    color: '#F8FAFC',
     fontSize: 15,
     marginBottom: 14,
   },

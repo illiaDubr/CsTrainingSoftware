@@ -15,8 +15,8 @@ const CELL = 13;
 const GAP = 3;
 const WEEKS = 53;
 const getColor = (count: number) => {
-  if (count === 0) return '#1e2235';
-  if (count === 1) return '#1a4a1a';
+  if (count === 0) return '#1A1F32';
+  if (count === 1) return 'rgba(34,197,94,0.28)';
   if (count <= 3) return '#2d7a2d';
   if (count <= 6) return '#3dab3d';
   return '#4ccd4c';
@@ -161,11 +161,11 @@ while (true) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1d2e',
+    backgroundColor: '#151827',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: '#242A40',
   },
   header: {
     flexDirection: 'row',
@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 14,
   },
-  title: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  total: { color: '#888', fontSize: 12 },
+  title: { color: '#F8FAFC', fontSize: 15, fontWeight: '600' },
+  total: { color: '#94A3B8', fontSize: 12 },
   monthRow: {
     position: 'relative',
     height: 14,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   monthLabel: {
     position: 'absolute',
-    color: '#666',
+    color: '#748099',
     fontSize: 9,
     top: 0,
   },
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dayLabel: {
-    color: '#666',
+    color: '#748099',
     fontSize: 8,
     textAlign: 'right',
   },
@@ -227,5 +227,5 @@ const styles = StyleSheet.create({
     marginTop: 6,
     justifyContent: 'flex-end',
   },
-  legendText: { color: '#666', fontSize: 9 },
+  legendText: { color: '#748099', fontSize: 9 },
 });

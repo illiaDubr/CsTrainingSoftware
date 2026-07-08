@@ -70,7 +70,7 @@ export default function CreateTrainingScreen() {
         <TextInput
           style={styles.input}
           placeholder="Название тренировки"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={title}
           onChangeText={setTitle}
         />
@@ -78,7 +78,7 @@ export default function CreateTrainingScreen() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Описание (необязательно)"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={description}
           onChangeText={setDescription}
           multiline
@@ -89,7 +89,7 @@ export default function CreateTrainingScreen() {
           <TextInput
             style={[styles.input, styles.flexInput]}
             placeholder="ДД.ММ.ГГГГ"
-            placeholderTextColor="#555"
+            placeholderTextColor="#5B677D"
             value={date}
             onChangeText={setDate}
             keyboardType="numbers-and-punctuation"
@@ -97,7 +97,7 @@ export default function CreateTrainingScreen() {
           <TextInput
             style={[styles.input, styles.flexInput]}
             placeholder="ЧЧ:ММ"
-            placeholderTextColor="#555"
+            placeholderTextColor="#5B677D"
             value={time}
             onChangeText={setTime}
             keyboardType="numbers-and-punctuation"
@@ -107,7 +107,7 @@ export default function CreateTrainingScreen() {
         <TextInput
           style={styles.input}
           placeholder="Длительность в минутах"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={duration}
           onChangeText={setDuration}
           keyboardType="number-pad"
@@ -125,17 +125,20 @@ export default function CreateTrainingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
   inner: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 60 },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 28 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 28, letterSpacing: -0.5 },
   input: {
-    backgroundColor: '#1a1d2e', borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 10,
-    paddingHorizontal: 16, paddingVertical: 14, color: '#fff', fontSize: 15, marginBottom: 14,
+    backgroundColor: '#151827', borderWidth: 1, borderColor: '#242A40', borderRadius: 10,
+    paddingHorizontal: 16, paddingVertical: 14, color: '#F8FAFC', fontSize: 15, marginBottom: 14,
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   row: { flexDirection: 'row', gap: 12 },
   flexInput: { flex: 1 },
-  button: { backgroundColor: '#f59e0b', borderRadius: 10, paddingVertical: 15, alignItems: 'center', marginTop: 8 },
+  button: {
+    backgroundColor: '#F59E0B', borderRadius: 12, paddingVertical: 15, alignItems: 'center', marginTop: 8,
+    shadowColor: '#F59E0B', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6,
+  },
   buttonText: { color: '#000', fontWeight: '700', fontSize: 16 },
 });

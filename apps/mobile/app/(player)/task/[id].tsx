@@ -6,7 +6,7 @@ import { tasksService } from '../../../src/services/tasksService';
 import { Task, TaskStatus } from '../../../src/types';
 
 const STATUSES: { value: TaskStatus; label: string; color: string }[] = [
-  { value: 'pending', label: 'Не начато', color: '#666' },
+  { value: 'pending', label: 'Не начато', color: '#748099' },
   { value: 'in_progress', label: 'В процессе', color: '#3b82f6' },
   { value: 'completed', label: 'Выполнено', color: '#22c55e' },
 ];
@@ -136,7 +136,7 @@ export default function TaskDetailScreen() {
       <TextInput
         style={styles.noteInput}
         placeholder="Добавь заметку о выполнении..."
-        placeholderTextColor="#555"
+        placeholderTextColor="#5B677D"
         value={note}
         onChangeText={setNote}
         multiline
@@ -154,33 +154,33 @@ export default function TaskDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   content: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 60 },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
-  description: { color: '#888', fontSize: 14, lineHeight: 20, marginBottom: 20 },
+  title: { color: '#F8FAFC', fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
+  description: { color: '#94A3B8', fontSize: 14, lineHeight: 20, marginBottom: 20 },
   metaRow: { flexDirection: 'row', marginBottom: 8 },
-  metaLabel: { color: '#666', fontSize: 14, marginRight: 8 },
-  metaValue: { color: '#fff', fontSize: 14, fontWeight: '500' },
-  sectionTitle: { color: '#fff', fontSize: 15, fontWeight: '600', marginTop: 24, marginBottom: 12 },
+  metaLabel: { color: '#748099', fontSize: 14, marginRight: 8 },
+  metaValue: { color: '#F8FAFC', fontSize: 14, fontWeight: '500' },
+  sectionTitle: { color: '#F8FAFC', fontSize: 15, fontWeight: '600', marginTop: 24, marginBottom: 12 },
   statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   statusBtn: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
-    backgroundColor: '#1a1d2e',
+    borderColor: '#242A40',
+    backgroundColor: '#151827',
   },
-  statusBtnText: { color: '#888', fontSize: 13, fontWeight: '600' },
+  statusBtnText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
   noteInput: {
-    backgroundColor: '#1a1d2e',
+    backgroundColor: '#151827',
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: '#242A40',
     borderRadius: 10,
     padding: 14,
-    color: '#fff',
+    color: '#F8FAFC',
     fontSize: 14,
     minHeight: 100,
     textAlignVertical: 'top',
@@ -193,5 +193,5 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   saveBtnText: { color: '#000', fontWeight: '700', fontSize: 15 },
-  errorText: { color: '#888', fontSize: 15 },
+  errorText: { color: '#94A3B8', fontSize: 15 },
 });

@@ -5,7 +5,7 @@ import { MonthGrid } from '../ui/MonthGrid';
 import { DayDetailModal } from '../ui/DayDetailModal';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#666', in_progress: '#3b82f6', completed: '#22c55e',
+  pending: '#748099', in_progress: '#3b82f6', completed: '#22c55e',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -13,7 +13,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: '#666', medium: '#f59e0b', high: '#ef4444',
+  low: '#748099', medium: '#f59e0b', high: '#ef4444',
 };
 
 interface Props {
@@ -104,35 +104,37 @@ export function RoutineCardCoach({ routine, todayDate, onDelete, onEdit }: Props
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a1d2e', borderRadius: 16, padding: 16,
-    marginBottom: 16, borderWidth: 1, borderColor: '#2a2d3e',
+    backgroundColor: '#151827', borderRadius: 16, padding: 16,
+    marginBottom: 16, borderWidth: 1, borderColor: '#242A40',
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   priorityDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
-  title: { color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 },
-  description: { color: '#888', fontSize: 12, marginBottom: 12 },
+  title: { color: '#F8FAFC', fontSize: 15, fontWeight: '700', flex: 1 },
+  description: { color: '#94A3B8', fontSize: 12, marginBottom: 12 },
   deleteBtn: { padding: 6 },
-  deleteText: { color: '#555', fontSize: 18 },
+  deleteText: { color: '#5B677D', fontSize: 18 },
   editBtn: { padding: 6, marginRight: 2 },
   editText: { color: '#f59e0b', fontSize: 16 },
   playerSection: {
-    borderTopWidth: 1, borderTopColor: '#2a2d3e',
+    borderTopWidth: 1, borderTopColor: '#242A40',
     marginTop: 14, paddingTop: 14,
   },
   playerHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   playerAvatar: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: '#2a1f00',
+    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(245,158,11,0.14)',
     justifyContent: 'center', alignItems: 'center', marginRight: 10,
   },
   playerAvatarText: { color: '#f59e0b', fontWeight: 'bold', fontSize: 13 },
-  playerName: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  playerRate: { color: '#888', fontSize: 11 },
+  playerName: { color: '#F8FAFC', fontSize: 13, fontWeight: '600' },
+  playerRate: { color: '#94A3B8', fontSize: 11 },
   todayBadge: {
     borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
   },
   todayBadgeText: { fontSize: 10, fontWeight: '600' },
-  emptyText: { color: '#666', fontSize: 13, textAlign: 'center', marginTop: 8 },
-  playerNote: { color: '#888', fontSize: 11, fontStyle: 'italic', marginTop: 2 },
+  emptyText: { color: '#748099', fontSize: 13, textAlign: 'center', marginTop: 8 },
+  playerNote: { color: '#94A3B8', fontSize: 11, fontStyle: 'italic', marginTop: 2 },
   playerTime: { color: '#f59e0b', fontSize: 11, marginTop: 2 },
 });

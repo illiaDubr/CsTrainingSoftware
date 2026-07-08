@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { TaskStatus } from '../../types';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#666',
+  pending: '#748099',
   in_progress: '#3b82f6',
   completed: '#22c55e',
 };
@@ -52,12 +52,12 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1d2e',
+    backgroundColor: '#151827',
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: '#242A40',
   },
   checkbox: {
     width: 26,
@@ -70,11 +70,11 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   checkboxChecked: { backgroundColor: '#22c55e', borderColor: '#22c55e' },
-  checkmark: { color: '#0f1117', fontWeight: 'bold', fontSize: 14 },
+  checkmark: { color: '#0B0D14', fontWeight: 'bold', fontSize: 14 },
   content: { flex: 1, marginRight: 8 },
-  title: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  titleCompleted: { color: '#666', textDecorationLine: 'line-through' },
-  description: { color: '#888', fontSize: 12, marginTop: 2 },
+  title: { color: '#F8FAFC', fontSize: 14, fontWeight: '600' },
+  titleCompleted: { color: '#748099', textDecorationLine: 'line-through' },
+  description: { color: '#94A3B8', fontSize: 12, marginTop: 2 },
   statusBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   statusText: { fontSize: 10, fontWeight: '600' },
 });
