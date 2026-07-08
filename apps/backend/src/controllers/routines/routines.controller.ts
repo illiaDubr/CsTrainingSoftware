@@ -43,6 +43,20 @@ export const createRoutineController = async (req: AuthRequest, res: Response, n
   } catch (err) { next(err); }
 };
 
+export const updateRoutineController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { title, description, priority } = req.body;
+    if (title !== undefined && !String(title).trim()) {
+      return res.status(400).json({ success: false, message: 'title cannot be empty' });
+    }
+    if (priority !== undefined && !['low', 'medium', 'high'].includes(priority)) {
+      return res.status(400).json({ success: false, message: 'invalid priority' });
+    }
+    const routine = await routinesService.updateRoutine(Number(req.params.id), req.user!.userId, { title, description, priority });
+    res.json({ success: true, data: routine });
+  } catch (err) { next(err); }
+};
+
 export const deactivateRoutineController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const result = await routinesService.deactivateRoutine(Number(req.params.id), req.user!.userId);

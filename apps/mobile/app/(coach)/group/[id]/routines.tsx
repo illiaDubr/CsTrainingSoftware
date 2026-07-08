@@ -75,6 +75,7 @@ export default function CoachGroupRoutinesScreen() {
               routine={item}
               todayDate={new Date().toLocaleDateString('en-CA')}
               onDelete={() => handleDeactivate(item.id)}
+              onEdit={() => router.push(`/(coach)/edit-routine?groupId=${id}&routineId=${item.id}`)}
             />
           )}
         />

@@ -115,6 +115,10 @@ export default function CoachTaskDetailScreen() {
         ))
       )}
 
+      <TouchableOpacity style={styles.editBtn} onPress={() => router.push(`/(coach)/edit-task?taskId=${id}`)}>
+        <Text style={styles.editBtnText}>Редактировать задачу</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
         <Text style={styles.deleteBtnText}>Удалить задачу</Text>
       </TouchableOpacity>
@@ -141,9 +145,14 @@ const styles = StyleSheet.create({
   playerNote: { color: '#888', fontSize: 12, marginTop: 4, maxWidth: 200 },
   statusBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   statusText: { fontSize: 11, fontWeight: '600' },
+  editBtn: {
+    borderWidth: 1, borderColor: '#f59e0b', borderRadius: 10,
+    paddingVertical: 14, alignItems: 'center', marginTop: 30,
+  },
+  editBtnText: { color: '#f59e0b', fontWeight: '700', fontSize: 15 },
   deleteBtn: {
     borderWidth: 1, borderColor: '#ef4444', borderRadius: 10,
-    paddingVertical: 14, alignItems: 'center', marginTop: 30,
+    paddingVertical: 14, alignItems: 'center', marginTop: 12,
   },
   deleteBtnText: { color: '#ef4444', fontWeight: '700', fontSize: 15 },
   errorText: { color: '#888', fontSize: 15 },

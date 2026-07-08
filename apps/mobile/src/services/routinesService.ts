@@ -26,6 +26,11 @@ export const routinesService = {
     return data.data;
   },
 
+  async updateRoutine(id: number, dto: { title?: string; description?: string; priority?: string }) {
+    const { data } = await apiClient.patch(`/routines/${id}`, dto);
+    return data.data;
+  },
+
   async deactivateRoutine(id: number) {
     const { data } = await apiClient.delete(`/routines/${id}`);
     return data.data;

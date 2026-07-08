@@ -18,9 +18,10 @@ const TYPE_LABELS: Record<string, string> = {
 interface Props {
   material: Material;
   onDelete?: () => void;
+  onEdit?: () => void;
 }
 
-export function MaterialCard({ material, onDelete }: Props) {
+export function MaterialCard({ material, onDelete, onEdit }: Props) {
   const handleOpen = () => {
     if (material.external_url) {
       Linking.openURL(material.external_url);
@@ -39,6 +40,11 @@ export function MaterialCard({ material, onDelete }: Props) {
         ) : null}
         <Text style={styles.type}>{TYPE_LABELS[material.type]}</Text>
       </View>
+      {onEdit ? (
+        <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+          <Text style={styles.editText}>✎</Text>
+        </TouchableOpacity>
+      ) : null}
       {onDelete ? (
         <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
           <Text style={styles.deleteText}>✕</Text>
@@ -64,4 +70,6 @@ const styles = StyleSheet.create({
   type: { color: '#666', fontSize: 11 },
   deleteBtn: { padding: 8 },
   deleteText: { color: '#666', fontSize: 16 },
+  editBtn: { padding: 8 },
+  editText: { color: '#f59e0b', fontSize: 15 },
 });
