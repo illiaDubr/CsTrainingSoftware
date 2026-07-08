@@ -5,7 +5,8 @@ import { statsService } from '../../../src/services/statsService';
 import { routinesService } from '../../../src/services/routinesService';
 import { ActivityHeatmap } from '../../../src/components/ui/ActivityHeatmap';
 import { MonthGrid } from '../../../src/components/ui/MonthGrid';
-import { Routine } from '../../../src/types';
+import { DayDetailModal } from '../../../src/components/ui/DayDetailModal';
+import { MonthProgressDay, Routine } from '../../../src/types';
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: '#666', medium: '#f59e0b', high: '#ef4444',
@@ -31,6 +32,7 @@ export default function CoachPlayerProfileScreen() {
   const [total, setTotal] = useState(0);
   const [personalRoutines, setPersonalRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState<{ day: MonthProgressDay; title: string } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -105,7 +107,11 @@ export default function CoachPlayerProfileScreen() {
               <Text style={styles.routineDescription}>{r.description}</Text>
             ) : null}
 
-            <MonthGrid monthProgress={r.monthProgress || []} todayDate={todayDate} />
+            <MonthGrid
+              monthProgress={r.monthProgress || []}
+              todayDate={todayDate}
+              onDayPress={(day) => setSelectedDay({ day, title: r.title })}
+            />
 
             <View style={styles.todayRow}>
               <Text style={styles.todayLabel}>Сегодня:</Text>
@@ -121,6 +127,14 @@ export default function CoachPlayerProfileScreen() {
           </View>
         ))
       )}
+
+      <DayDetailModal
+        visible={!!selectedDay}
+        day={selectedDay?.day || null}
+        routineTitle={selectedDay?.title || ''}
+        playerName={username}
+        onClose={() => setSelectedDay(null)}
+      />
     </ScrollView>
   );
 }

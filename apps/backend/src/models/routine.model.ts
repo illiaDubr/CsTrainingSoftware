@@ -17,6 +17,7 @@ export interface RoutineProgress {
   date: string;
   status: 'pending' | 'in_progress' | 'completed';
   note?: string;
+  time_spent_minutes?: number;
   completed_at?: Date;
   updated_at: Date;
 }

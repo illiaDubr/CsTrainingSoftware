@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Routine } from '../../types';
+import { MonthProgressDay, Routine } from '../../types';
 import { MonthGrid } from '../ui/MonthGrid';
+import { DayDetailModal } from '../ui/DayDetailModal';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#666', in_progress: '#3b82f6', completed: '#22c55e',
@@ -22,6 +24,14 @@ interface Props {
 
 export function RoutineCardCoach({ routine, todayDate, onDelete }: Props) {
   const playerStats = routine.playerStats || [];
+  const [selectedDay, setSelectedDay] = useState<{ day: MonthProgressDay; playerName: string } | null>(null);
+
+  const formatTime = (minutes: number) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0) return `${m} мин`;
+    return m === 0 ? `${h} ч` : `${h} ч ${m} мин`;
+  };
 
   return (
     <View style={styles.card}>
@@ -49,9 +59,12 @@ export function RoutineCardCoach({ routine, todayDate, onDelete }: Props) {
             <View style={{ flex: 1 }}>
               <Text style={styles.playerName}>{player.username}</Text>
               <Text style={styles.playerRate}>Выполнение: {player.completionRate}%</Text>
+              {player.todayTimeSpent != null ? (
+                <Text style={styles.playerTime}>⏱ Сегодня: {formatTime(player.todayTimeSpent)}</Text>
+              ) : null}
               {player.todayNote ? (
-  <Text style={styles.playerNote}>💬 {player.todayNote}</Text>
-) : null}
+                <Text style={styles.playerNote}>💬 {player.todayNote}</Text>
+              ) : null}
             </View>
             <View style={[styles.todayBadge, { borderColor: STATUS_COLORS[player.todayStatus] }]}>
               <Text style={[styles.todayBadgeText, { color: STATUS_COLORS[player.todayStatus] }]}>
@@ -63,6 +76,7 @@ export function RoutineCardCoach({ routine, todayDate, onDelete }: Props) {
           <MonthGrid
             monthProgress={player.monthProgress}
             todayDate={todayDate}
+            onDayPress={(day) => setSelectedDay({ day, playerName: player.username })}
           />
         </View>
       ))}
@@ -70,6 +84,14 @@ export function RoutineCardCoach({ routine, todayDate, onDelete }: Props) {
       {playerStats.length === 0 && (
         <Text style={styles.emptyText}>В группе пока нет игроков</Text>
       )}
+
+      <DayDetailModal
+        visible={!!selectedDay}
+        day={selectedDay?.day || null}
+        routineTitle={routine.title}
+        playerName={selectedDay?.playerName}
+        onClose={() => setSelectedDay(null)}
+      />
     </View>
   );
 }
@@ -104,4 +126,5 @@ const styles = StyleSheet.create({
   todayBadgeText: { fontSize: 10, fontWeight: '600' },
   emptyText: { color: '#666', fontSize: 13, textAlign: 'center', marginTop: 8 },
   playerNote: { color: '#888', fontSize: 11, fontStyle: 'italic', marginTop: 2 },
+  playerTime: { color: '#f59e0b', fontSize: 11, marginTop: 2 },
 });

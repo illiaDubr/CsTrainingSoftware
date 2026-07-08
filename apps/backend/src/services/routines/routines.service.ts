@@ -58,14 +58,23 @@ const ensureTodayProgressPersonal = async (playerId: number) => {
   }
 };
 
+const toDateStr = (date: any) => {
+  const d = date instanceof Date ? date : new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const shapeMonthProgress = (progress: any[]) =>
+  progress.map(p => ({
+    date: toDateStr(p.date),
+    status: p.status,
+    note: p.note || '',
+    time_spent_minutes: p.time_spent_minutes ?? null,
+  }));
+
 const shapePlayerRoutines = (routines: any[], progress: any[], today: string) => {
   return routines.map(r => {
     const routineProgress = progress.filter(p => p.routine_id === r.id);
-    const todayProgress = routineProgress.find(p => {
-      const d = p.date instanceof Date ? p.date : new Date(p.date);
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      return dateStr === today;
-    });
+    const todayProgress = routineProgress.find(p => toDateStr(p.date) === today);
     const completed = routineProgress.filter(p => p.status === 'completed').length;
     const total = routineProgress.length;
 
@@ -73,13 +82,8 @@ const shapePlayerRoutines = (routines: any[], progress: any[], today: string) =>
       ...r,
       todayStatus: todayProgress?.status || 'pending',
       todayNote: todayProgress?.note || '',
-      monthProgress: routineProgress.map(p => {
-        const d = p.date instanceof Date ? p.date : new Date(p.date);
-        return {
-          date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
-          status: p.status,
-        };
-      }),
+      todayTimeSpent: todayProgress?.time_spent_minutes ?? null,
+      monthProgress: shapeMonthProgress(routineProgress),
       completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
     };
   });
@@ -145,30 +149,7 @@ export const getRoutinesByGroup = async (groupId: number, userId: number, role: 
       .whereIn('routine_id', routines.map(r => r.id))
       .select('*');
 
-    return routines.map(r => {
-      const routineProgress = progress.filter(p => p.routine_id === r.id);
-      const todayProgress = routineProgress.find(p => {
-        const d = p.date instanceof Date ? p.date : new Date(p.date);
-        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        return dateStr === today;
-      });
-      const completed = routineProgress.filter(p => p.status === 'completed').length;
-      const total = routineProgress.length;
-
-      return {
-        ...r,
-        todayStatus: todayProgress?.status || 'pending',
-        todayNote: todayProgress?.note || '',
-        monthProgress: routineProgress.map(p => {
-          const d = p.date instanceof Date ? p.date : new Date(p.date);
-          return {
-            date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
-            status: p.status,
-          };
-        }),
-        completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
-      };
-    });
+    return shapePlayerRoutines(routines, progress, today);
   }
 
   if (role === 'coach') {
@@ -190,25 +171,16 @@ export const getRoutinesByGroup = async (groupId: number, userId: number, role: 
         const playerProgress = routineProgress.filter(p => p.player_id === m.id);
         const completed = playerProgress.filter(p => p.status === 'completed').length;
         const total = playerProgress.length;
-        const todayP = playerProgress.find(p => {
-          const d = p.date instanceof Date ? p.date : new Date(p.date);
-          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          return dateStr === today;
-        });
+        const todayP = playerProgress.find(p => toDateStr(p.date) === today);
 
         return {
           playerId: m.id,
           username: m.username,
           todayStatus: todayP?.status || 'pending',
           todayNote: todayP?.note || '',
+          todayTimeSpent: todayP?.time_spent_minutes ?? null,
           completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
-          monthProgress: playerProgress.map(p => {
-            const d = p.date instanceof Date ? p.date : new Date(p.date);
-            return {
-              date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
-              status: p.status,
-            };
-          }),
+          monthProgress: shapeMonthProgress(playerProgress),
         };
       });
 
@@ -258,6 +230,7 @@ export const deactivateRoutine = async (id: number, userId: number) => {
 export const updateRoutineProgress = async (routineId: number, playerId: number, dto: {
   status: string;
   note?: string;
+  time_spent_minutes?: number | null;
 }) => {
   const today = todayDate();
 
@@ -270,7 +243,13 @@ export const updateRoutineProgress = async (routineId: number, playerId: number,
 
   const [updated] = await db('routine_progress')
     .where({ routine_id: routineId, player_id: playerId, date: today })
-    .update({ status: dto.status, note: dto.note, completed_at, updated_at: db.fn.now() })
+    .update({
+      status: dto.status,
+      note: dto.note,
+      time_spent_minutes: dto.time_spent_minutes ?? null,
+      completed_at,
+      updated_at: db.fn.now(),
+    })
     .returning('*');
 
   return updated;

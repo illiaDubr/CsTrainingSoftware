@@ -62,8 +62,8 @@ export default function PlayerGroupRoutinesScreen() {
             <RoutineCardPlayer
               routine={item}
               todayDate={new Date().toLocaleDateString('en-CA')}
-              onUpdateStatus={async (routineId, status, note) => {
-                await routinesService.updateProgress(routineId, status, note);
+              onUpdateStatus={async (routineId, status, note, timeSpent) => {
+                await routinesService.updateProgress(routineId, status, note, timeSpent);
                 await loadData();
               }}
             />
