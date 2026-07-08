@@ -5,6 +5,7 @@ import { routinesService } from '../../src/services/routinesService';
 import { RoutineCardPlayer } from '../../src/components/cards/RoutineCardPlayer';
 import { Routine } from '../../src/types';
 import { showAlert, showConfirm } from '../../src/utils/alert';
+import { FAB } from '../../src/components/ui/FAB';
 
 export default function MyRoutinesScreen() {
   const router = useRouter();
@@ -91,23 +92,21 @@ export default function MyRoutinesScreen() {
         />
       )}
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/(player)/create-routine')}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      <FAB onPress={() => router.push('/(player)/create-routine')} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117', paddingTop: 60, paddingHorizontal: 20 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14', paddingTop: 60, paddingHorizontal: 20 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 12 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 6 },
-  subtitle: { color: '#888', fontSize: 13, marginBottom: 20 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 6, letterSpacing: -0.5 },
+  subtitle: { color: '#94A3B8', fontSize: 13, marginBottom: 20 },
   list: { paddingBottom: 100 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 },
-  emptyText: { color: '#888', fontSize: 15, textAlign: 'center', marginBottom: 8 },
-  emptySubtext: { color: '#555', fontSize: 13, textAlign: 'center' },
+  emptyText: { color: '#94A3B8', fontSize: 15, textAlign: 'center', marginBottom: 8 },
+  emptySubtext: { color: '#5B677D', fontSize: 13, textAlign: 'center' },
   deleteLink: { alignSelf: 'flex-end', paddingVertical: 4, paddingHorizontal: 8, marginTop: -8, marginBottom: 12 },
   deleteLinkText: { color: '#ef4444', fontSize: 12 },
   fab: {

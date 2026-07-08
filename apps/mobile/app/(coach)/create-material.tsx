@@ -56,7 +56,7 @@ export default function CreateMaterialScreen() {
         <TextInput
           style={styles.input}
           placeholder="Название материала"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={title}
           onChangeText={setTitle}
         />
@@ -64,7 +64,7 @@ export default function CreateMaterialScreen() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Описание (необязательно)"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={description}
           onChangeText={setDescription}
           multiline
@@ -74,7 +74,7 @@ export default function CreateMaterialScreen() {
         <TextInput
           style={styles.input}
           placeholder="Ссылка (https://...)"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={url}
           onChangeText={setUrl}
           autoCapitalize="none"
@@ -108,24 +108,27 @@ export default function CreateMaterialScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
   inner: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 60 },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 28 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 28, letterSpacing: -0.5 },
   input: {
-    backgroundColor: '#1a1d2e', borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 10,
-    paddingHorizontal: 16, paddingVertical: 14, color: '#fff', fontSize: 15, marginBottom: 14,
+    backgroundColor: '#151827', borderWidth: 1, borderColor: '#242A40', borderRadius: 10,
+    paddingHorizontal: 16, paddingVertical: 14, color: '#F8FAFC', fontSize: 15, marginBottom: 14,
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
-  label: { color: '#888', fontSize: 13, marginBottom: 10 },
+  label: { color: '#94A3B8', fontSize: 13, marginBottom: 10 },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 28 },
   typeBtn: {
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, borderWidth: 1,
-    borderColor: '#2a2d3e', backgroundColor: '#1a1d2e',
+    borderColor: '#242A40', backgroundColor: '#151827',
   },
-  typeBtnActive: { borderColor: '#f59e0b', backgroundColor: '#2a1f00' },
-  typeBtnText: { color: '#888', fontSize: 13, fontWeight: '600' },
+  typeBtnActive: { borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.14)' },
+  typeBtnText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
   typeBtnTextActive: { color: '#f59e0b' },
-  button: { backgroundColor: '#f59e0b', borderRadius: 10, paddingVertical: 15, alignItems: 'center' },
+  button: {
+    backgroundColor: '#F59E0B', borderRadius: 12, paddingVertical: 15, alignItems: 'center',
+    shadowColor: '#F59E0B', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6,
+  },
   buttonText: { color: '#000', fontWeight: '700', fontSize: 16 },
 });

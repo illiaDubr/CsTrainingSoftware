@@ -75,11 +75,11 @@ export default function PlayerGroupRoutinesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117', paddingTop: 60, paddingHorizontal: 20 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14', paddingTop: 60, paddingHorizontal: 20 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 12 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 20, letterSpacing: -0.5 },
   list: { paddingBottom: 40 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { color: '#888', fontSize: 15 },
+  emptyText: { color: '#94A3B8', fontSize: 15 },
 });

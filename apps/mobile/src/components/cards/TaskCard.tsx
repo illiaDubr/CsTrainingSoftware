@@ -9,14 +9,14 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#666',
+  pending: '#748099',
   in_progress: '#3b82f6',
   completed: '#22c55e',
   overdue: '#ef4444',
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: '#666',
+  low: '#748099',
   medium: '#f59e0b',
   high: '#ef4444',
 };
@@ -68,20 +68,25 @@ export function TaskCard({ task, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a1d2e',
-    borderRadius: 14,
+    backgroundColor: '#151827',
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: '#242A40',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
-  title: { color: '#fff', fontSize: 16, fontWeight: '600', flex: 1, marginRight: 8 },
+  title: { color: '#F8FAFC', fontSize: 16, fontWeight: '700', flex: 1, marginRight: 8, letterSpacing: -0.2 },
   priorityDot: { width: 10, height: 10, borderRadius: 5, marginTop: 4 },
-  description: { color: '#888', fontSize: 13, marginBottom: 12, lineHeight: 18 },
+  description: { color: '#94A3B8', fontSize: 13, marginBottom: 12, lineHeight: 18 },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  statusBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  statusText: { fontSize: 12, fontWeight: '600' },
-  priorityText: { color: '#666', fontSize: 12 },
-  dueDate: { color: '#666', fontSize: 12, marginTop: 8 },
+  statusBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 },
+  statusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
+  priorityText: { color: '#748099', fontSize: 12 },
+  dueDate: { color: '#748099', fontSize: 12, marginTop: 8 },
 });

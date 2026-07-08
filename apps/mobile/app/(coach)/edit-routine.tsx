@@ -9,7 +9,7 @@ import { Routine } from '../../src/types';
 import { showAlert } from '../../src/utils/alert';
 
 const PRIORITIES = [
-  { value: 'low', label: 'Низкий', color: '#666' },
+  { value: 'low', label: 'Низкий', color: '#748099' },
   { value: 'medium', label: 'Средний', color: '#f59e0b' },
   { value: 'high', label: 'Высокий', color: '#ef4444' },
 ];
@@ -97,7 +97,7 @@ export default function EditRoutineScreen() {
         <TextInput
           style={styles.input}
           placeholder="Название задания"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={title}
           onChangeText={setTitle}
           editable={!saving}
@@ -106,7 +106,7 @@ export default function EditRoutineScreen() {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Описание (необязательно)"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={description}
           onChangeText={setDescription}
           multiline
@@ -146,25 +146,28 @@ export default function EditRoutineScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   inner: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 60, width: '100%', maxWidth: 600, alignSelf: 'center' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 28 },
-  errorText: { color: '#888', fontSize: 15, marginBottom: 16 },
+  title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 28, letterSpacing: -0.5 },
+  errorText: { color: '#94A3B8', fontSize: 15, marginBottom: 16 },
   input: {
-    backgroundColor: '#1a1d2e', borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 10,
-    paddingHorizontal: 16, paddingVertical: 14, color: '#fff', fontSize: 15, marginBottom: 14,
+    backgroundColor: '#151827', borderWidth: 1, borderColor: '#242A40', borderRadius: 10,
+    paddingHorizontal: 16, paddingVertical: 14, color: '#F8FAFC', fontSize: 15, marginBottom: 14,
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
-  label: { color: '#888', fontSize: 13, marginBottom: 10 },
+  label: { color: '#94A3B8', fontSize: 13, marginBottom: 10 },
   priorityRow: { flexDirection: 'row', gap: 10, marginBottom: 28 },
   priorityBtn: {
     flex: 1, paddingVertical: 12, borderRadius: 10, borderWidth: 1,
-    borderColor: '#2a2d3e', alignItems: 'center', backgroundColor: '#1a1d2e',
+    borderColor: '#242A40', alignItems: 'center', backgroundColor: '#151827',
   },
-  priorityBtnText: { color: '#888', fontWeight: '600', fontSize: 13 },
-  button: { backgroundColor: '#f59e0b', borderRadius: 10, paddingVertical: 15, alignItems: 'center' },
+  priorityBtnText: { color: '#94A3B8', fontWeight: '600', fontSize: 13 },
+  button: {
+    backgroundColor: '#F59E0B', borderRadius: 12, paddingVertical: 15, alignItems: 'center',
+    shadowColor: '#F59E0B', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6,
+  },
   buttonDisabled: { opacity: 0.7 },
   buttonText: { color: '#000', fontWeight: '700', fontSize: 16 },
 });

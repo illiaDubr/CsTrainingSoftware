@@ -109,25 +109,27 @@ export default function PlayerGroupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
   content: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 40, width: '100%', maxWidth: 700, alignSelf: 'center' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 12 },
-  title: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
-  subtitle: { color: '#888', fontSize: 14, marginBottom: 24 },
+  title: { color: '#F8FAFC', fontSize: 26, fontWeight: '800', marginBottom: 4, letterSpacing: -0.5 },
+  subtitle: { color: '#94A3B8', fontSize: 14, marginBottom: 24 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14 },
   tile: {
     width: '48%',
-    backgroundColor: '#1a1d2e',
+    backgroundColor: '#151827',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: '#242A40',
     padding: 16,
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
   tileTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   tileIcon: { fontSize: 28 },
   countBadge: {
-    backgroundColor: '#2a1f00',
+    backgroundColor: 'rgba(245,158,11,0.14)',
     borderWidth: 1,
     borderColor: '#f59e0b',
     borderRadius: 12,
@@ -137,6 +139,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countText: { color: '#f59e0b', fontSize: 13, fontWeight: '700' },
-  tileLabel: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 },
-  tileHint: { color: '#666', fontSize: 12 },
+  tileLabel: { color: '#F8FAFC', fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  tileHint: { color: '#748099', fontSize: 12 },
 });

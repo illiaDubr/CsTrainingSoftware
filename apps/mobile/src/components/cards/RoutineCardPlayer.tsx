@@ -5,13 +5,13 @@ import { MonthGrid } from '../ui/MonthGrid';
 import { DayDetailModal } from '../ui/DayDetailModal';
 
 const STATUS_CONFIG = [
-  { value: 'completed' as TaskStatus, label: '✓ Выполнено', color: '#22c55e', bg: '#0a2a0a' },
-  { value: 'in_progress' as TaskStatus, label: '⟳ В процессе', color: '#3b82f6', bg: '#0a1a3a' },
-  { value: 'pending' as TaskStatus, label: '✕ Не выполнено', color: '#666', bg: '#1e2235' },
+  { value: 'completed' as TaskStatus, label: '✓ Выполнено', color: '#22c55e', bg: 'rgba(34,197,94,0.14)' },
+  { value: 'in_progress' as TaskStatus, label: '⟳ В процессе', color: '#3b82f6', bg: 'rgba(59,130,246,0.14)' },
+  { value: 'pending' as TaskStatus, label: '✕ Не выполнено', color: '#748099', bg: '#1A1F32' },
 ];
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: '#666', medium: '#f59e0b', high: '#ef4444',
+  low: '#748099', medium: '#f59e0b', high: '#ef4444',
 };
 
 interface Props {
@@ -78,7 +78,7 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
           <Text style={styles.legendText}>В процессе</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#2a2d3e' }]} />
+          <View style={[styles.legendDot, { backgroundColor: '#242A40' }]} />
           <Text style={styles.legendText}>Не отмечено</Text>
         </View>
       </View>
@@ -106,12 +106,12 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
                 key={s.value}
                 style={[
                   styles.statusOption,
-                  { borderColor: selectedStatus === s.value ? s.color : '#2a2d3e' },
+                  { borderColor: selectedStatus === s.value ? s.color : '#242A40' },
                   selectedStatus === s.value && { backgroundColor: s.bg },
                 ]}
                 onPress={() => setSelectedStatus(s.value)}
               >
-                <Text style={[styles.statusOptionText, { color: selectedStatus === s.value ? s.color : '#888' }]}>
+                <Text style={[styles.statusOptionText, { color: selectedStatus === s.value ? s.color : '#94A3B8' }]}>
                   {s.label}
                 </Text>
               </TouchableOpacity>
@@ -122,7 +122,7 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
               <TextInput
                 style={styles.timeInput}
                 placeholder="0"
-                placeholderTextColor="#555"
+                placeholderTextColor="#5B677D"
                 value={timeSpent}
                 onChangeText={(v) => setTimeSpent(v.replace(/[^0-9]/g, ''))}
                 keyboardType="number-pad"
@@ -133,7 +133,7 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
             <TextInput
               style={styles.noteInput}
               placeholder="Заметка (необязательно)..."
-              placeholderTextColor="#555"
+              placeholderTextColor="#5B677D"
               value={note}
               onChangeText={setNote}
               multiline
@@ -168,19 +168,21 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a1d2e', borderRadius: 16, padding: 16,
-    marginBottom: 16, borderWidth: 1, borderColor: '#2a2d3e',
+    backgroundColor: '#151827', borderRadius: 16, padding: 16,
+    marginBottom: 16, borderWidth: 1, borderColor: '#242A40',
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   priorityDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
-  title: { color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 },
+  title: { color: '#F8FAFC', fontSize: 15, fontWeight: '700', flex: 1 },
   rate: { color: '#f59e0b', fontSize: 14, fontWeight: '700' },
-  description: { color: '#888', fontSize: 12, marginBottom: 4 },
+  description: { color: '#94A3B8', fontSize: 12, marginBottom: 4 },
   legend: { flexDirection: 'row', gap: 12, marginTop: 10, marginBottom: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendDot: { width: 8, height: 8, borderRadius: 2 },
-  legendText: { color: '#666', fontSize: 10 },
+  legendText: { color: '#748099', fontSize: 10 },
   markBtn: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10,
@@ -192,11 +194,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1d2e', borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    backgroundColor: '#151827', borderTopLeftRadius: 20, borderTopRightRadius: 20,
     padding: 24, paddingBottom: 40,
   },
-  modalTitle: { color: '#fff', fontSize: 17, fontWeight: '700', marginBottom: 4 },
-  modalSubtitle: { color: '#888', fontSize: 13, marginBottom: 20 },
+  modalTitle: { color: '#F8FAFC', fontSize: 17, fontWeight: '700', marginBottom: 4 },
+  modalSubtitle: { color: '#94A3B8', fontSize: 13, marginBottom: 20 },
   statusOption: {
     borderWidth: 1, borderRadius: 10, padding: 14,
     marginBottom: 10,
@@ -206,23 +208,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginTop: 8,
   },
-  timeLabel: { color: '#888', fontSize: 13 },
+  timeLabel: { color: '#94A3B8', fontSize: 13 },
   timeInput: {
-    backgroundColor: '#14172a', borderWidth: 1, borderColor: '#2a2d3e',
+    backgroundColor: '#10131E', borderWidth: 1, borderColor: '#242A40',
     borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
-    color: '#fff', fontSize: 14, width: 80, textAlign: 'center',
+    color: '#F8FAFC', fontSize: 14, width: 80, textAlign: 'center',
   },
   noteInput: {
-    backgroundColor: '#14172a', borderWidth: 1, borderColor: '#2a2d3e',
-    borderRadius: 10, padding: 12, color: '#fff', fontSize: 13,
+    backgroundColor: '#10131E', borderWidth: 1, borderColor: '#242A40',
+    borderRadius: 10, padding: 12, color: '#F8FAFC', fontSize: 13,
     minHeight: 80, textAlignVertical: 'top', marginTop: 8, marginBottom: 16,
   },
   modalButtons: { flexDirection: 'row', gap: 12 },
   cancelBtn: {
-    flex: 1, borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 10,
+    flex: 1, borderWidth: 1, borderColor: '#242A40', borderRadius: 10,
     paddingVertical: 13, alignItems: 'center',
   },
-  cancelBtnText: { color: '#888', fontWeight: '600' },
+  cancelBtnText: { color: '#94A3B8', fontWeight: '600' },
   saveBtn: {
     flex: 2, backgroundColor: '#f59e0b', borderRadius: 10,
     paddingVertical: 13, alignItems: 'center',

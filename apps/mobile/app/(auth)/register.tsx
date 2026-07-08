@@ -2,13 +2,16 @@ import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, KeyboardAvoidingView, Platform,
-  ActivityIndicator, ScrollView,
+  ScrollView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAppDispatch } from '../../src/hooks/useAppDispatch';
 import { setCredentials } from '../../src/store/slices/authSlice';
 import { authService } from '../../src/services/authService';
 import { PLAYER_ROLES } from '../../src/constants';
+import { GradientButton } from '../../src/components/ui/GradientButton';
+import { colors, gradients, radius, spacing, presets } from '../../src/theme';
 
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
 
@@ -74,11 +77,15 @@ export default function RegisterScreen() {
   };
 
   return (
+    <LinearGradient colors={gradients.hero} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={styles.container}>
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+        <View style={styles.logoBadge}>
+          <Text style={styles.logoBadgeText}>LE</Text>
+        </View>
         <Text style={styles.logo}>Los Espada Training</Text>
         <Text style={styles.subtitle}>Создай аккаунт</Text>
 
@@ -91,7 +98,7 @@ export default function RegisterScreen() {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={email}
           onChangeText={(v) => { setEmail(v); clearError(); }}
           autoCapitalize="none"
@@ -102,7 +109,7 @@ export default function RegisterScreen() {
         <TextInput
           style={styles.input}
           placeholder="Ник"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={username}
           onChangeText={(v) => { setUsername(v); clearError(); }}
           autoCapitalize="none"
@@ -111,7 +118,7 @@ export default function RegisterScreen() {
         <TextInput
           style={styles.input}
           placeholder="Имя (необязательно)"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={fullName}
           onChangeText={(v) => { setFullName(v); clearError(); }}
           editable={!loading}
@@ -119,7 +126,7 @@ export default function RegisterScreen() {
         <TextInput
           style={styles.input}
           placeholder="Пароль (минимум 6 символов)"
-          placeholderTextColor="#555"
+          placeholderTextColor="#5B677D"
           value={password}
           onChangeText={(v) => { setPassword(v); clearError(); }}
           secureTextEntry
@@ -171,7 +178,7 @@ export default function RegisterScreen() {
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Стиль игры, любимые карты, опыт..."
-              placeholderTextColor="#555"
+              placeholderTextColor="#5B677D"
               value={bio}
               onChangeText={(v) => { setBio(v); clearError(); }}
               multiline
@@ -182,86 +189,85 @@ export default function RegisterScreen() {
           </>
         ) : null}
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
+        <GradientButton
+          title="Зарегистрироваться"
           onPress={handleRegister}
-          disabled={loading}
-        >
-          {loading
-            ? <ActivityIndicator color="#000" />
-            : <Text style={styles.buttonText}>Зарегистрироваться</Text>
-          }
-        </TouchableOpacity>
+          loading={loading}
+          style={styles.button}
+        />
 
         <TouchableOpacity onPress={() => router.back()} disabled={loading}>
-          <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
+          <Text style={styles.link}>
+            Уже есть аккаунт? <Text style={styles.linkAccent}>Войти</Text>
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
+  container: { flex: 1 },
+  flex: { flex: 1 },
   inner: {
     flexGrow: 1, justifyContent: 'center', paddingHorizontal: 28, paddingVertical: 40,
     width: '100%', maxWidth: 440, alignSelf: 'center',
   },
-  logo: { fontSize: 32, fontWeight: 'bold', color: '#f59e0b', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#888', textAlign: 'center', marginBottom: 28 },
+  logoBadge: {
+    width: 56, height: 56, borderRadius: 18, alignSelf: 'center',
+    backgroundColor: colors.primarySoft, borderWidth: 1, borderColor: colors.borderAccent,
+    justifyContent: 'center', alignItems: 'center', marginBottom: spacing.md,
+  },
+  logoBadgeText: { color: colors.primary, fontSize: 20, fontWeight: '900', letterSpacing: 1 },
+  logo: {
+    fontSize: 26, fontWeight: '800', color: colors.text,
+    textAlign: 'center', marginBottom: spacing.sm, letterSpacing: -0.5,
+  },
+  subtitle: { fontSize: 15, color: colors.textSecondary, textAlign: 'center', marginBottom: 28 },
   errorBox: {
-    backgroundColor: '#2a1215',
+    backgroundColor: colors.dangerSoft,
     borderWidth: 1,
-    borderColor: '#ef4444',
-    borderRadius: 10,
+    borderColor: colors.danger,
+    borderRadius: radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
-  errorText: { color: '#ef4444', fontSize: 13, textAlign: 'center' },
+  errorText: { color: colors.danger, fontSize: 13, textAlign: 'center' },
   input: {
-    backgroundColor: '#1a1d2e',
-    borderWidth: 1,
-    borderColor: '#2a2d3e',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    color: '#fff',
-    fontSize: 15,
+    ...presets.input,
+    backgroundColor: colors.surface,
     marginBottom: 14,
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
-  label: { color: '#888', fontSize: 13, marginBottom: 10 },
-  roleRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  label: {
+    color: colors.textSecondary, fontSize: 12, fontWeight: '600',
+    letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10,
+  },
+  roleRow: { flexDirection: 'row', gap: 12, marginBottom: spacing.xl },
   roleBtn: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 13,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: colors.border,
     alignItems: 'center',
-    backgroundColor: '#1a1d2e',
+    backgroundColor: colors.surface,
   },
-  roleBtnActive: { borderColor: '#f59e0b', backgroundColor: '#2a1f00' },
-  roleBtnText: { color: '#888', fontWeight: '600' },
-  roleBtnTextActive: { color: '#f59e0b' },
-  gameRoleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
+  roleBtnActive: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  roleBtnText: { color: colors.textSecondary, fontWeight: '600' },
+  roleBtnTextActive: { color: colors.primary },
+  gameRoleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: spacing.xl },
   gameRoleBtn: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
-    backgroundColor: '#1a1d2e',
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  button: {
-    backgroundColor: '#f59e0b',
-    borderRadius: 10,
-    paddingVertical: 15,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  buttonDisabled: { opacity: 0.7 },
-  buttonText: { color: '#000', fontWeight: '700', fontSize: 16 },
-  link: { color: '#f59e0b', textAlign: 'center', fontSize: 14, marginBottom: 20 },
+  button: { marginBottom: spacing.xl },
+  link: { color: colors.textSecondary, textAlign: 'center', fontSize: 14, marginBottom: spacing.xl },
+  linkAccent: { color: colors.primary, fontWeight: '700' },
 });

@@ -12,7 +12,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#666',
+  pending: '#748099',
   in_progress: '#3b82f6',
   completed: '#22c55e',
   overdue: '#ef4444',
@@ -127,22 +127,22 @@ export default function CoachTaskDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f1117' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  container: { flex: 1, backgroundColor: '#0B0D14' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   content: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 60 },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 20 },
-  title: { color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
-  description: { color: '#888', fontSize: 14, lineHeight: 20, marginBottom: 16 },
+  title: { color: '#F8FAFC', fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
+  description: { color: '#94A3B8', fontSize: 14, lineHeight: 20, marginBottom: 16 },
   progressSummary: { color: '#f59e0b', fontSize: 14, fontWeight: '600', marginBottom: 24 },
-  sectionTitle: { color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 12 },
-  emptyText: { color: '#666', fontSize: 14 },
+  sectionTitle: { color: '#F8FAFC', fontSize: 15, fontWeight: '600', marginBottom: 12 },
+  emptyText: { color: '#748099', fontSize: 14 },
   playerCard: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#1a1d2e', borderRadius: 12, padding: 14, marginBottom: 10,
-    borderWidth: 1, borderColor: '#2a2d3e',
+    backgroundColor: '#151827', borderRadius: 12, padding: 14, marginBottom: 10,
+    borderWidth: 1, borderColor: '#242A40',
   },
-  playerName: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  playerNote: { color: '#888', fontSize: 12, marginTop: 4, maxWidth: 200 },
+  playerName: { color: '#F8FAFC', fontSize: 15, fontWeight: '600' },
+  playerNote: { color: '#94A3B8', fontSize: 12, marginTop: 4, maxWidth: 200 },
   statusBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   statusText: { fontSize: 11, fontWeight: '600' },
   editBtn: {
@@ -155,5 +155,5 @@ const styles = StyleSheet.create({
     paddingVertical: 14, alignItems: 'center', marginTop: 12,
   },
   deleteBtnText: { color: '#ef4444', fontWeight: '700', fontSize: 15 },
-  errorText: { color: '#888', fontSize: 15 },
+  errorText: { color: '#94A3B8', fontSize: 15 },
 });

@@ -1,11 +1,14 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/hooks/useAppDispatch';
 import { logout } from '../../src/store/slices/authSlice';
 import { authService } from '../../src/services/authService';
 import { groupsService } from '../../src/services/groupsService';
 import { Group } from '../../src/types';
+import { FAB } from '../../src/components/ui/FAB';
+import { colors, gradients, radius, shadows } from '../../src/theme';
 
 export default function CoachDashboard() {
   const router = useRouter();
@@ -61,7 +64,12 @@ export default function CoachDashboard() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
       >
         {/* Шапка-профиль */}
-        <View style={styles.profileCard}>
+        <LinearGradient
+          colors={gradients.surface}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.profileCard}
+        >
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{user?.username?.[0]?.toUpperCase()}</Text>
           </View>
@@ -69,7 +77,7 @@ export default function CoachDashboard() {
             <Text style={styles.username}>{user?.username}</Text>
             <View style={styles.badgeRow}>
               <View style={styles.roleBadge}>
-                <Text style={styles.roleText}>Тренер</Text>
+                <Text style={styles.roleText}>ТРЕНЕР</Text>
               </View>
             </View>
             <Text style={styles.subtitle}>Команд: {groups.length}</Text>
@@ -77,7 +85,7 @@ export default function CoachDashboard() {
           <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
             <Text style={styles.logoutText}>Выйти</Text>
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
 
         {/* Команды */}
         <Text style={styles.sectionTitle}>Твои команды</Text>
@@ -107,59 +115,58 @@ export default function CoachDashboard() {
         )}
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/(coach)/create-group')}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      <FAB onPress={() => router.push('/(coach)/create-group')} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1, backgroundColor: '#0f1117' },
+  wrapper: { flex: 1, backgroundColor: '#0B0D14' },
   container: { flex: 1 },
   content: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 100, width: '100%', maxWidth: 700, alignSelf: 'center' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1117' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   profileCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1d2e',
-    borderRadius: 16, padding: 16, marginBottom: 28, borderWidth: 1, borderColor: '#2a2d3e',
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: radius.xl, padding: 18, marginBottom: 28,
+    borderWidth: 1, borderColor: colors.borderStrong,
+    ...shadows.card,
   },
   avatar: {
-    width: 56, height: 56, borderRadius: 28, backgroundColor: '#2a1f00',
+    width: 58, height: 58, borderRadius: 29, backgroundColor: colors.primarySoft,
     justifyContent: 'center', alignItems: 'center', marginRight: 14,
-    borderWidth: 1, borderColor: '#f59e0b',
+    borderWidth: 1.5, borderColor: colors.primary,
   },
-  avatarText: { color: '#f59e0b', fontSize: 24, fontWeight: 'bold' },
-  username: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+  avatarText: { color: colors.primary, fontSize: 24, fontWeight: '800' },
+  username: { color: colors.text, fontSize: 19, fontWeight: '800', marginBottom: 5, letterSpacing: -0.3 },
   badgeRow: { flexDirection: 'row', marginBottom: 6 },
-  roleBadge: { backgroundColor: '#2a1f00', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 3 },
-  roleText: { color: '#f59e0b', fontSize: 11, fontWeight: '600' },
-  subtitle: { color: '#888', fontSize: 12 },
-  logoutBtn: {
-    borderWidth: 1, borderColor: '#2a2d3e', borderRadius: 8,
-    paddingHorizontal: 12, paddingVertical: 6, marginLeft: 8,
+  roleBadge: {
+    backgroundColor: colors.primarySoft, borderRadius: radius.full,
+    paddingHorizontal: 10, paddingVertical: 3,
+    borderWidth: 1, borderColor: colors.borderAccent,
   },
-  logoutText: { color: '#888', fontSize: 12, fontWeight: '600' },
-  sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 14 },
+  roleText: { color: colors.primary, fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
+  subtitle: { color: colors.textSecondary, fontSize: 12 },
+  logoutBtn: {
+    borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm,
+    paddingHorizontal: 12, paddingVertical: 7, marginLeft: 8,
+  },
+  logoutText: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800', marginBottom: 14, letterSpacing: -0.3 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14 },
   tile: {
     width: '48%',
-    backgroundColor: '#1a1d2e',
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: colors.border,
     padding: 16,
     minHeight: 110,
+    ...shadows.subtle,
   },
   tileIcon: { fontSize: 26, marginBottom: 10 },
-  tileName: { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 },
-  tileDescription: { color: '#666', fontSize: 12 },
+  tileName: { color: colors.text, fontSize: 15, fontWeight: '700', marginBottom: 4 },
+  tileDescription: { color: colors.textMuted, fontSize: 12 },
   empty: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 40 },
-  emptyText: { color: '#888', fontSize: 15, textAlign: 'center', marginBottom: 8 },
-  emptySubtext: { color: '#555', fontSize: 13, textAlign: 'center' },
-  fab: {
-    position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#f59e0b', justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#f59e0b', shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6,
-  },
-  fabText: { color: '#000', fontSize: 28, fontWeight: '300', marginTop: -2 },
+  emptyText: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', marginBottom: 8 },
+  emptySubtext: { color: colors.textFaint, fontSize: 13, textAlign: 'center' },
 });

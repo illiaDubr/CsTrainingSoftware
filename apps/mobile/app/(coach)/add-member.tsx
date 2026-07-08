@@ -75,7 +75,7 @@ export default function AddMemberScreen() {
       <TextInput
         style={styles.input}
         placeholder="Поиск по нику..."
-        placeholderTextColor="#555"
+        placeholderTextColor="#5B677D"
         value={query}
         onChangeText={setQuery}
         autoCapitalize="none"
@@ -127,7 +127,7 @@ export default function AddMemberScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f1117',
+    backgroundColor: '#0B0D14',
     paddingTop: 60,
     paddingHorizontal: 20,
   },
@@ -137,19 +137,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
-    color: '#fff',
+    color: '#F8FAFC',
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
   },
   input: {
-    backgroundColor: '#1a1d2e',
+    backgroundColor: '#151827',
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: '#242A40',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    color: '#fff',
+    color: '#F8FAFC',
     fontSize: 15,
     marginBottom: 20,
   },
@@ -159,18 +159,18 @@ const styles = StyleSheet.create({
   resultCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1d2e',
+    backgroundColor: '#151827',
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#2a2d3e',
+    borderColor: '#242A40',
   },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#2a1f00',
+    backgroundColor: 'rgba(245,158,11,0.14)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -181,12 +181,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   username: {
-    color: '#fff',
+    color: '#F8FAFC',
     fontSize: 15,
     fontWeight: '600',
   },
   email: {
-    color: '#888',
+    color: '#94A3B8',
     fontSize: 12,
     marginTop: 2,
   },
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   emptyText: {
-    color: '#666',
+    color: '#748099',
     textAlign: 'center',
     marginTop: 30,
   },
