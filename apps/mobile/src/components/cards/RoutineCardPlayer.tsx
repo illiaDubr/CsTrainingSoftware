@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ActivityInd
 import { MonthProgressDay, Routine, TaskStatus } from '../../types';
 import { MonthGrid } from '../ui/MonthGrid';
 import { DayDetailModal } from '../ui/DayDetailModal';
+import { routineAccent } from '../../utils/routineColors';
 
 const STATUS_CONFIG = [
   { value: 'completed' as TaskStatus, label: '✓ Выполнено', color: '#22c55e', bg: 'rgba(34,197,94,0.14)' },
@@ -32,6 +33,7 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
 
   const todayStatus = routine.todayStatus || 'pending';
   const currentConfig = STATUS_CONFIG.find(s => s.value === todayStatus) || STATUS_CONFIG[2];
+  const accent = routineAccent(routine.id);
 
   const handleSave = async () => {
     const minutes = timeSpent.trim() === '' ? null : parseInt(timeSpent, 10);
@@ -46,14 +48,14 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { borderLeftWidth: 3, borderLeftColor: accent }]}>
       {/* Заголовок */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={[styles.priorityDot, { backgroundColor: PRIORITY_COLORS[routine.priority] }]} />
-          <Text style={styles.title}>{routine.title}</Text>
+          <Text style={[styles.title, { color: accent }]}>{routine.title}</Text>
         </View>
-        <Text style={styles.rate}>{routine.completionRate}%</Text>
+        <Text style={[styles.rate, { color: accent }]}>{routine.completionRate}%</Text>
       </View>
 
       {routine.description ? (

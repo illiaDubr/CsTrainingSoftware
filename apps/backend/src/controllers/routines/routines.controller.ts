@@ -64,6 +64,28 @@ export const deactivateRoutineController = async (req: AuthRequest, res: Respons
   } catch (err) { next(err); }
 };
 
+export const overrideRoutineProgressController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { player_id, date, status, note } = req.body;
+    if (!player_id || !date || !status) {
+      return res.status(400).json({ success: false, message: 'player_id, date and status are required' });
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date))) {
+      return res.status(400).json({ success: false, message: 'date must be YYYY-MM-DD' });
+    }
+    if (!['pending', 'in_progress', 'completed'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'invalid status' });
+    }
+    const progress = await routinesService.overrideRoutineProgress(req.user!.userId, Number(req.params.id), {
+      player_id: Number(player_id),
+      date: String(date),
+      status,
+      note,
+    });
+    res.json({ success: true, data: progress });
+  } catch (err) { next(err); }
+};
+
 export const updateRoutineProgressController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { status, note, time_spent_minutes } = req.body;

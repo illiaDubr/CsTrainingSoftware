@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { MonthProgressDay, Routine } from '../../types';
+import { MonthProgressDay, Routine, TaskStatus } from '../../types';
 import { MonthGrid } from '../ui/MonthGrid';
 import { DayDetailModal } from '../ui/DayDetailModal';
+import { routineAccent } from '../../utils/routineColors';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#748099', in_progress: '#3b82f6', completed: '#22c55e',
@@ -21,11 +22,14 @@ interface Props {
   todayDate: string;
   onDelete: () => void;
   onEdit?: () => void;
+  /** Тренер: проставить статус игроку за конкретный день */
+  onOverrideStatus?: (playerId: number, date: string, status: TaskStatus) => Promise<void>;
 }
 
-export function RoutineCardCoach({ routine, todayDate, onDelete, onEdit }: Props) {
+export function RoutineCardCoach({ routine, todayDate, onDelete, onEdit, onOverrideStatus }: Props) {
   const playerStats = routine.playerStats || [];
-  const [selectedDay, setSelectedDay] = useState<{ day: MonthProgressDay; playerName: string } | null>(null);
+  const accent = routineAccent(routine.id);
+  const [selectedDay, setSelectedDay] = useState<{ day: MonthProgressDay; playerName: string; playerId: number } | null>(null);
 
   const formatTime = (minutes: number) => {
     const h = Math.floor(minutes / 60);
@@ -35,11 +39,11 @@ export function RoutineCardCoach({ routine, todayDate, onDelete, onEdit }: Props
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { borderLeftWidth: 3, borderLeftColor: accent }]}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={[styles.priorityDot, { backgroundColor: PRIORITY_COLORS[routine.priority] }]} />
-          <Text style={styles.title}>{routine.title}</Text>
+          <Text style={[styles.title, { color: accent }]}>{routine.title}</Text>
         </View>
         {onEdit ? (
           <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
@@ -82,7 +86,7 @@ export function RoutineCardCoach({ routine, todayDate, onDelete, onEdit }: Props
           <MonthGrid
             monthProgress={player.monthProgress}
             todayDate={todayDate}
-            onDayPress={(day) => setSelectedDay({ day, playerName: player.username })}
+            onDayPress={(day) => setSelectedDay({ day, playerName: player.username, playerId: player.playerId })}
           />
         </View>
       ))}
@@ -97,6 +101,11 @@ export function RoutineCardCoach({ routine, todayDate, onDelete, onEdit }: Props
         routineTitle={routine.title}
         playerName={selectedDay?.playerName}
         onClose={() => setSelectedDay(null)}
+        onSetStatus={
+          onOverrideStatus && selectedDay
+            ? (status) => onOverrideStatus(selectedDay.playerId, selectedDay.day.date, status)
+            : undefined
+        }
       />
     </View>
   );

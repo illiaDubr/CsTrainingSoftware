@@ -254,6 +254,75 @@ export const deactivateRoutine = async (id: number, userId: number) => {
   return { message: 'Routine deactivated' };
 };
 
+// Тренер проставляет статус игроку за конкретный (в т.ч. прошлый) день
+export const overrideRoutineProgress = async (coachId: number, routineId: number, dto: {
+  player_id: number;
+  date: string; // YYYY-MM-DD
+  status: string;
+  note?: string;
+}) => {
+  const routine = await db('routines').where({ id: routineId }).first();
+  if (!routine) throw new AppError('Routine not found', 404);
+
+  if (routine.group_id) {
+    // Групповая рутина: тренер владеет группой, игрок — участник
+    const group = await db('groups').where({ id: routine.group_id, coach_id: coachId }).first();
+    if (!group) throw new AppError('Access denied', 403);
+
+    const member = await db('group_members')
+      .where({ group_id: routine.group_id, player_id: dto.player_id })
+      .first();
+    if (!member) throw new AppError('Player is not in this group', 403);
+  } else if (routine.player_id) {
+    // Индивидуальная рутина: она принадлежит этому игроку, а игрок — в группе тренера
+    if (routine.player_id !== dto.player_id) throw new AppError('Access denied', 403);
+
+    const shared = await db('group_members')
+      .join('groups', 'group_members.group_id', 'groups.id')
+      .where('groups.coach_id', coachId)
+      .andWhere('group_members.player_id', dto.player_id)
+      .first();
+    if (!shared) throw new AppError('Player is not in your groups', 403);
+  } else {
+    throw new AppError('Access denied', 403);
+  }
+
+  if (dto.date > todayDate()) throw new AppError('Cannot mark future dates', 400);
+
+  const completed_at = dto.status === 'completed' ? db.fn.now() : null;
+
+  const existing = await db('routine_progress')
+    .where({ routine_id: routineId, player_id: dto.player_id, date: dto.date })
+    .first();
+
+  if (existing) {
+    const updates: Record<string, any> = {
+      status: dto.status,
+      completed_at,
+      updated_at: db.fn.now(),
+    };
+    if (dto.note !== undefined) updates.note = dto.note;
+
+    const [updated] = await db('routine_progress')
+      .where({ routine_id: routineId, player_id: dto.player_id, date: dto.date })
+      .update(updates)
+      .returning('*');
+    return updated;
+  }
+
+  const [created] = await db('routine_progress')
+    .insert({
+      routine_id: routineId,
+      player_id: dto.player_id,
+      date: dto.date,
+      status: dto.status,
+      note: dto.note,
+      completed_at,
+    })
+    .returning('*');
+  return created;
+};
+
 export const updateRoutineProgress = async (routineId: number, playerId: number, dto: {
   status: string;
   note?: string;

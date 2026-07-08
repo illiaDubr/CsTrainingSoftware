@@ -77,6 +77,14 @@ export default function CoachGroupRoutinesScreen() {
               todayDate={new Date().toLocaleDateString('en-CA')}
               onDelete={() => handleDeactivate(item.id)}
               onEdit={() => router.push(`/(coach)/edit-routine?groupId=${id}&routineId=${item.id}`)}
+              onOverrideStatus={async (playerId, date, status) => {
+                try {
+                  await routinesService.overrideProgress(item.id, playerId, date, status);
+                  await loadData();
+                } catch {
+                  showAlert('Ошибка', 'Не удалось обновить статус');
+                }
+              }}
             />
           )}
         />

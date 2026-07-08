@@ -10,6 +10,7 @@ import {
   updateRoutineController,
   deactivateRoutineController,
   updateRoutineProgressController,
+  overrideRoutineProgressController,
 } from '../../controllers/routines/routines.controller';
 
 const router = Router();
@@ -29,5 +30,7 @@ router.post('/', authorize(UserRole.COACH), createRoutineController);
 router.patch('/:id', updateRoutineController);
 router.delete('/:id', deactivateRoutineController);
 router.patch('/:id/progress', authorize(UserRole.PLAYER), updateRoutineProgressController);
+// Тренер проставляет статус игроку за любой (в т.ч. прошлый) день
+router.patch('/:id/progress/override', authorize(UserRole.COACH), overrideRoutineProgressController);
 
 export default router;

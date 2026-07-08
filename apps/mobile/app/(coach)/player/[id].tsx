@@ -6,7 +6,9 @@ import { routinesService } from '../../../src/services/routinesService';
 import { ActivityHeatmap } from '../../../src/components/ui/ActivityHeatmap';
 import { MonthGrid } from '../../../src/components/ui/MonthGrid';
 import { DayDetailModal } from '../../../src/components/ui/DayDetailModal';
-import { MonthProgressDay, Routine } from '../../../src/types';
+import { MonthProgressDay, Routine, TaskStatus } from '../../../src/types';
+import { routineAccent } from '../../../src/utils/routineColors';
+import { showAlert } from '../../../src/utils/alert';
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: '#748099', medium: '#f59e0b', high: '#ef4444',
@@ -32,28 +34,39 @@ export default function CoachPlayerProfileScreen() {
   const [total, setTotal] = useState(0);
   const [personalRoutines, setPersonalRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState<{ day: MonthProgressDay; title: string } | null>(null);
+  const [selectedDay, setSelectedDay] = useState<{ day: MonthProgressDay; title: string; routineId: number } | null>(null);
+
+  const loadData = async () => {
+    try {
+      const [data, routines] = await Promise.all([
+        statsService.getPlayerActivity(Number(id)),
+        routinesService.getPlayerPersonalRoutines(Number(id)).catch(() => []),
+      ]);
+      setActivity(data.activity);
+      setTotal(data.total);
+      setPersonalRoutines(routines);
+    } catch {
+      // тихо
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
-      const load = async () => {
-        try {
-          const [data, routines] = await Promise.all([
-            statsService.getPlayerActivity(Number(id)),
-            routinesService.getPlayerPersonalRoutines(Number(id)).catch(() => []),
-          ]);
-          setActivity(data.activity);
-          setTotal(data.total);
-          setPersonalRoutines(routines);
-        } catch {
-          // тихо
-        } finally {
-          setLoading(false);
-        }
-      };
-      load();
+      loadData();
     }, [id])
   );
+
+  const handleOverride = async (status: TaskStatus) => {
+    if (!selectedDay) return;
+    try {
+      await routinesService.overrideProgress(selectedDay.routineId, Number(id), selectedDay.day.date, status);
+      await loadData();
+    } catch {
+      showAlert('Ошибка', 'Не удалось обновить статус');
+    }
+  };
 
   if (loading) {
     return (
@@ -94,13 +107,13 @@ export default function CoachPlayerProfileScreen() {
         <Text style={styles.emptyText}>Игрок пока не создал личных заданий</Text>
       ) : (
         personalRoutines.map((r) => (
-          <View key={r.id} style={styles.routineCard}>
+          <View key={r.id} style={[styles.routineCard, { borderLeftWidth: 3, borderLeftColor: routineAccent(r.id) }]}>
             <View style={styles.routineHeader}>
               <View style={styles.routineHeaderLeft}>
                 <View style={[styles.priorityDot, { backgroundColor: PRIORITY_COLORS[r.priority] }]} />
-                <Text style={styles.routineTitle}>{r.title}</Text>
+                <Text style={[styles.routineTitle, { color: routineAccent(r.id) }]}>{r.title}</Text>
               </View>
-              <Text style={styles.routineRate}>{r.completionRate ?? 0}%</Text>
+              <Text style={[styles.routineRate, { color: routineAccent(r.id) }]}>{r.completionRate ?? 0}%</Text>
             </View>
 
             {r.description ? (
@@ -110,7 +123,7 @@ export default function CoachPlayerProfileScreen() {
             <MonthGrid
               monthProgress={r.monthProgress || []}
               todayDate={todayDate}
-              onDayPress={(day) => setSelectedDay({ day, title: r.title })}
+              onDayPress={(day) => setSelectedDay({ day, title: r.title, routineId: r.id })}
             />
 
             <View style={styles.todayRow}>
@@ -134,6 +147,7 @@ export default function CoachPlayerProfileScreen() {
         routineTitle={selectedDay?.title || ''}
         playerName={username}
         onClose={() => setSelectedDay(null)}
+        onSetStatus={handleOverride}
       />
     </ScrollView>
   );
