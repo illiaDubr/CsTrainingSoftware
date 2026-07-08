@@ -20,9 +20,10 @@ interface Props {
   routine: Routine;
   todayDate: string;
   onDelete: () => void;
+  onEdit?: () => void;
 }
 
-export function RoutineCardCoach({ routine, todayDate, onDelete }: Props) {
+export function RoutineCardCoach({ routine, todayDate, onDelete, onEdit }: Props) {
   const playerStats = routine.playerStats || [];
   const [selectedDay, setSelectedDay] = useState<{ day: MonthProgressDay; playerName: string } | null>(null);
 
@@ -40,6 +41,11 @@ export function RoutineCardCoach({ routine, todayDate, onDelete }: Props) {
           <View style={[styles.priorityDot, { backgroundColor: PRIORITY_COLORS[routine.priority] }]} />
           <Text style={styles.title}>{routine.title}</Text>
         </View>
+        {onEdit ? (
+          <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <Text style={styles.editText}>✎</Text>
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
           <Text style={styles.deleteText}>✕</Text>
         </TouchableOpacity>
@@ -108,6 +114,8 @@ const styles = StyleSheet.create({
   description: { color: '#888', fontSize: 12, marginBottom: 12 },
   deleteBtn: { padding: 6 },
   deleteText: { color: '#555', fontSize: 18 },
+  editBtn: { padding: 6, marginRight: 2 },
+  editText: { color: '#f59e0b', fontSize: 16 },
   playerSection: {
     borderTopWidth: 1, borderTopColor: '#2a2d3e',
     marginTop: 14, paddingTop: 14,

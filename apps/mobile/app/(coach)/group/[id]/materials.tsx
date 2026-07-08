@@ -71,7 +71,11 @@ export default function CoachGroupMaterialsScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
           renderItem={({ item }) => (
-            <MaterialCard material={item} onDelete={() => handleDelete(item.id)} />
+            <MaterialCard
+              material={item}
+              onDelete={() => handleDelete(item.id)}
+              onEdit={() => router.push(`/(coach)/edit-material?groupId=${id}&materialId=${item.id}`)}
+            />
           )}
         />
       )}

@@ -213,6 +213,33 @@ export const createRoutine = async (coachId: number, dto: {
   return routine;
 };
 
+export const updateRoutine = async (id: number, userId: number, dto: {
+  title?: string;
+  description?: string;
+  priority?: string;
+}) => {
+  // Владелец — тренер (групповая рутина) или игрок (индивидуальная)
+  const routine = await db('routines')
+    .where({ id })
+    .andWhere((qb) => {
+      qb.where({ coach_id: userId }).orWhere({ player_id: userId });
+    })
+    .first();
+  if (!routine) throw new AppError('Routine not found or access denied', 404);
+
+  const updates: Record<string, any> = {};
+  if (dto.title !== undefined) updates.title = dto.title;
+  if (dto.description !== undefined) updates.description = dto.description;
+  if (dto.priority !== undefined) updates.priority = dto.priority;
+
+  const [updated] = await db('routines')
+    .where({ id })
+    .update({ ...updates, updated_at: db.fn.now() })
+    .returning('*');
+
+  return updated;
+};
+
 export const deactivateRoutine = async (id: number, userId: number) => {
   // Владелец — тренер (групповая рутина) или игрок (индивидуальная)
   const routine = await db('routines')

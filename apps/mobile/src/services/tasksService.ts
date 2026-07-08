@@ -21,6 +21,11 @@ export const tasksService = {
     return data.data;
   },
 
+  async updateTask(taskId: number, dto: { title?: string; description?: string; priority?: string; due_date?: string }) {
+    const { data } = await apiClient.patch(`/tasks/${taskId}`, dto);
+    return data.data;
+  },
+
   async deleteTask(taskId: number) {
     const { data } = await apiClient.delete(`/tasks/${taskId}`);
     return data.data;

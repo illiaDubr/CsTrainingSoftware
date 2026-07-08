@@ -7,6 +7,7 @@ import {
   getPlayerPersonalRoutinesController,
   createPersonalRoutineController,
   createRoutineController,
+  updateRoutineController,
   deactivateRoutineController,
   updateRoutineProgressController,
 } from '../../controllers/routines/routines.controller';
@@ -24,7 +25,8 @@ router.get('/personal/:playerId', authorize(UserRole.COACH), getPlayerPersonalRo
 router.get('/', getRoutinesController);
 router.post('/', authorize(UserRole.COACH), createRoutineController);
 
-// Удаление — владелец (тренер или игрок), проверка в сервисе
+// Редактирование и удаление — владелец (тренер или игрок), проверка в сервисе
+router.patch('/:id', updateRoutineController);
 router.delete('/:id', deactivateRoutineController);
 router.patch('/:id/progress', authorize(UserRole.PLAYER), updateRoutineProgressController);
 
