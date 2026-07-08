@@ -36,6 +36,14 @@ export const routinesService = {
     return data.data;
   },
 
+  // Тренер проставляет статус игроку за конкретный день (в т.ч. прошлый)
+  async overrideProgress(routineId: number, playerId: number, date: string, status: string) {
+    const { data } = await apiClient.patch(`/routines/${routineId}/progress/override`, {
+      player_id: playerId, date, status,
+    });
+    return data.data;
+  },
+
   async updateProgress(routineId: number, status: string, note?: string, timeSpentMinutes?: number | null) {
     const { data } = await apiClient.patch(`/routines/${routineId}/progress`, {
       status, note, time_spent_minutes: timeSpentMinutes ?? null,
