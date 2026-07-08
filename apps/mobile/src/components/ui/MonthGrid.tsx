@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MonthProgressDay, TaskStatus } from '../../types';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -16,11 +16,12 @@ const STATUS_BORDER: Record<string, string> = {
 interface Props {
   monthProgress: MonthProgressDay[];
   todayDate: string;
+  onDayPress?: (day: MonthProgressDay) => void;
 }
 
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-export function MonthGrid({ monthProgress, todayDate }: Props) {
+export function MonthGrid({ monthProgress, todayDate, onDayPress }: Props) {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
@@ -30,9 +31,9 @@ export function MonthGrid({ monthProgress, todayDate }: Props) {
   const firstDow = new Date(year, month, 1).getDay();
   const startOffset = firstDow === 0 ? 6 : firstDow - 1; // сдвиг к понедельнику
 
-  const progressMap = new Map<string, TaskStatus>();
+  const progressMap = new Map<string, MonthProgressDay>();
   for (const p of monthProgress) {
-    progressMap.set(p.date, p.status);
+    progressMap.set(p.date, p);
   }
 
   // Строим массив ячеек: пустые + дни месяца
@@ -64,13 +65,18 @@ export function MonthGrid({ monthProgress, todayDate }: Props) {
             if (!day) return <View key={di} style={styles.emptyCell} />;
 
             const dateStr = toDateStr(day);
-            const status = progressMap.get(dateStr) || 'pending';
+            const dayProgress = progressMap.get(dateStr);
+            const status = dayProgress?.status || 'pending';
             const isToday = dateStr === todayDate;
             const isFuture = dateStr > todayDate;
+            const pressable = !isFuture && !!onDayPress;
 
             return (
-              <View
+              <TouchableOpacity
                 key={di}
+                disabled={!pressable}
+                activeOpacity={0.6}
+                onPress={() => onDayPress?.(dayProgress || { date: dateStr, status: 'pending' })}
                 style={[
                   styles.cell,
                   { backgroundColor: isFuture ? 'transparent' : STATUS_COLORS[status] },
@@ -85,7 +91,10 @@ export function MonthGrid({ monthProgress, todayDate }: Props) {
                 ]}>
                   {day}
                 </Text>
-              </View>
+                {!isFuture && (dayProgress?.note || dayProgress?.time_spent_minutes != null) ? (
+                  <View style={styles.noteDot} />
+                ) : null}
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -111,6 +120,10 @@ const styles = StyleSheet.create({
   emptyCell: { width: CELL_SIZE, height: CELL_SIZE, marginRight: 2 },
   cellToday: { borderWidth: 2 },
   dayNum: { color: '#fff', fontSize: 11, fontWeight: '500' },
+  noteDot: {
+    position: 'absolute', top: 3, right: 3,
+    width: 4, height: 4, borderRadius: 2, backgroundColor: '#f59e0b',
+  },
   dayNumToday: { color: '#f59e0b', fontWeight: 'bold' },
   dayNumFuture: { color: '#333' },
 });

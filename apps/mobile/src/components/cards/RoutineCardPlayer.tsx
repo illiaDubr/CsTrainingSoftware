@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ActivityIndicator } from 'react-native';
-import { Routine, TaskStatus } from '../../types';
+import { MonthProgressDay, Routine, TaskStatus } from '../../types';
 import { MonthGrid } from '../ui/MonthGrid';
+import { DayDetailModal } from '../ui/DayDetailModal';
 
 const STATUS_CONFIG = [
   { value: 'completed' as TaskStatus, label: '✓ Выполнено', color: '#22c55e', bg: '#0a2a0a' },
@@ -16,22 +17,28 @@ const PRIORITY_COLORS: Record<string, string> = {
 interface Props {
   routine: Routine;
   todayDate: string;
-  onUpdateStatus: (routineId: number, status: TaskStatus, note: string) => Promise<void>;
+  onUpdateStatus: (routineId: number, status: TaskStatus, note: string, timeSpent: number | null) => Promise<void>;
 }
 
 export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus>(routine.todayStatus || 'pending');
   const [note, setNote] = useState(routine.todayNote || '');
+  const [timeSpent, setTimeSpent] = useState(
+    routine.todayTimeSpent != null ? String(routine.todayTimeSpent) : ''
+  );
   const [saving, setSaving] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<MonthProgressDay | null>(null);
 
   const todayStatus = routine.todayStatus || 'pending';
   const currentConfig = STATUS_CONFIG.find(s => s.value === todayStatus) || STATUS_CONFIG[2];
 
   const handleSave = async () => {
+    const minutes = timeSpent.trim() === '' ? null : parseInt(timeSpent, 10);
+    if (minutes !== null && (isNaN(minutes) || minutes < 0 || minutes > 1440)) return;
     setSaving(true);
     try {
-      await onUpdateStatus(routine.id, selectedStatus, note);
+      await onUpdateStatus(routine.id, selectedStatus, note, minutes);
       setModalVisible(false);
     } finally {
       setSaving(false);
@@ -57,6 +64,7 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
       <MonthGrid
         monthProgress={routine.monthProgress || []}
         todayDate={todayDate}
+        onDayPress={(day) => setSelectedDay(day)}
       />
 
       {/* Легенда */}
@@ -109,6 +117,19 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
               </TouchableOpacity>
             ))}
 
+            <View style={styles.timeRow}>
+              <Text style={styles.timeLabel}>⏱ Затрачено времени (мин)</Text>
+              <TextInput
+                style={styles.timeInput}
+                placeholder="0"
+                placeholderTextColor="#555"
+                value={timeSpent}
+                onChangeText={(v) => setTimeSpent(v.replace(/[^0-9]/g, ''))}
+                keyboardType="number-pad"
+                maxLength={4}
+              />
+            </View>
+
             <TextInput
               style={styles.noteInput}
               placeholder="Заметка (необязательно)..."
@@ -133,6 +154,14 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
           </View>
         </View>
       </Modal>
+
+      {/* Детали дня */}
+      <DayDetailModal
+        visible={!!selectedDay}
+        day={selectedDay}
+        routineTitle={routine.title}
+        onClose={() => setSelectedDay(null)}
+      />
     </View>
   );
 }
@@ -173,6 +202,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   statusOptionText: { fontSize: 14, fontWeight: '600' },
+  timeRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  timeLabel: { color: '#888', fontSize: 13 },
+  timeInput: {
+    backgroundColor: '#14172a', borderWidth: 1, borderColor: '#2a2d3e',
+    borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
+    color: '#fff', fontSize: 14, width: 80, textAlign: 'center',
+  },
   noteInput: {
     backgroundColor: '#14172a', borderWidth: 1, borderColor: '#2a2d3e',
     borderRadius: 10, padding: 12, color: '#fff', fontSize: 13,

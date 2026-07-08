@@ -52,9 +52,15 @@ export const deactivateRoutineController = async (req: AuthRequest, res: Respons
 
 export const updateRoutineProgressController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { status, note } = req.body;
+    const { status, note, time_spent_minutes } = req.body;
     if (!status) return res.status(400).json({ success: false, message: 'status is required' });
-    const progress = await routinesService.updateRoutineProgress(Number(req.params.id), req.user!.userId, { status, note });
+    const timeSpent = time_spent_minutes !== undefined && time_spent_minutes !== null && time_spent_minutes !== ''
+      ? Number(time_spent_minutes)
+      : null;
+    if (timeSpent !== null && (!Number.isFinite(timeSpent) || timeSpent < 0 || timeSpent > 1440)) {
+      return res.status(400).json({ success: false, message: 'time_spent_minutes must be between 0 and 1440' });
+    }
+    const progress = await routinesService.updateRoutineProgress(Number(req.params.id), req.user!.userId, { status, note, time_spent_minutes: timeSpent });
     res.json({ success: true, data: progress });
   } catch (err) { next(err); }
 };

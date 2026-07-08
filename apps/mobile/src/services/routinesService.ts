@@ -31,8 +31,10 @@ export const routinesService = {
     return data.data;
   },
 
-  async updateProgress(routineId: number, status: string, note?: string) {
-    const { data } = await apiClient.patch(`/routines/${routineId}/progress`, { status, note });
+  async updateProgress(routineId: number, status: string, note?: string, timeSpentMinutes?: number | null) {
+    const { data } = await apiClient.patch(`/routines/${routineId}/progress`, {
+      status, note, time_spent_minutes: timeSpentMinutes ?? null,
+    });
     return data.data;
   },
 };
