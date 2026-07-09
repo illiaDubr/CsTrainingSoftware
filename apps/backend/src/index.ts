@@ -15,6 +15,7 @@ import trainingRoutes from './routes/trainings';
 import materialRoutes from './routes/materials';
 import routineRoutes from './routes/routines';
 import statsRoutes from './routes/stats';
+import mapRoutes from './routes/maps';
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/trainings', trainingRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/routines', routineRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/maps', mapRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
