@@ -8,6 +8,8 @@ import { groupsService } from '../../src/services/groupsService';
 import { usersService } from '../../src/services/usersService';
 import { Group } from '../../src/types';
 import { ROLE_LABELS } from '../../src/constants';
+import { MapOfDayBanner } from '../../src/components/ui/MapOfDayBanner';
+import { mapsService, MapOfDay } from '../../src/services/mapsService';
 import { colors, gradients, radius, shadows } from '../../src/theme';
 
 export default function PlayerDashboard() {
@@ -16,16 +18,19 @@ export default function PlayerDashboard() {
   const user = useAppSelector(state => state.auth.user);
 
   const [groups, setGroups] = useState<Group[]>([]);
+  const [maps, setMaps] = useState<MapOfDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
-      const [groupList, me] = await Promise.all([
+      const [groupList, me, mapList] = await Promise.all([
         groupsService.getMyGroups(),
         usersService.getMe(),
+        mapsService.getActiveMaps().catch(() => []),
       ]);
       setGroups(groupList);
+      setMaps(mapList);
       dispatch(updateProfile(me));
     } catch {
       // тихо игнорируем — покажем пустое состояние
@@ -93,6 +98,11 @@ export default function PlayerDashboard() {
           <Text style={styles.chevron}>›</Text>
         </LinearGradient>
       </TouchableOpacity>
+
+      {/* Карта дня */}
+      {maps.map((m) => (
+        <MapOfDayBanner key={m.id} map={m} showCoach={maps.length > 1 || !!m.coach_username} />
+      ))}
 
       {/* Индивидуальная рутина */}
       <TouchableOpacity
