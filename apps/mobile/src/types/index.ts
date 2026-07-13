@@ -104,3 +104,32 @@ export interface Routine {
   
   progress?: RoutineProgress | RoutineProgress[];
 }
+// --- Раскидки (nades) ---
+export type NadeSide = 'T' | 'CT';
+export type NadeCategory = 'base' | 'default' | 'extra';
+export type NadeType = 'smoke' | 'flash' | 'molotov' | 'he';
+
+export interface NadeImage {
+  id: number;
+  nade_id: number;
+  image_url: string;
+  sort_order: number;
+}
+
+export interface Nade {
+  id: number;
+  coach_id: number;
+  map_name: string;
+  side: NadeSide;
+  category: NadeCategory;
+  nade_type: NadeType;
+  title: string;
+  description?: string;
+  created_at: string;
+  images: NadeImage[];
+}
+
+export interface NadeMapSummary {
+  map_name: string;
+  count: number;
+}
