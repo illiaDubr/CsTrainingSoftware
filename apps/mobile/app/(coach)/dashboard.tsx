@@ -129,6 +129,20 @@ export default function CoachDashboard() {
           </TouchableOpacity>
         )}
 
+        {/* Раскидки */}
+        <TouchableOpacity
+          style={styles.nadesTile}
+          activeOpacity={0.7}
+          onPress={() => router.push('/(coach)/nades')}
+        >
+          <Text style={styles.nadesTileIcon}>💣</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.nadesTileName}>Раскидки</Text>
+            <Text style={styles.nadesTileHint}>Гранаты по картам для всех команд</Text>
+          </View>
+          <Text style={styles.nadesChevron}>›</Text>
+        </TouchableOpacity>
+
         {/* Команды */}
         <Text style={styles.sectionTitle}>Твои команды</Text>
 
@@ -203,6 +217,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 7, marginLeft: 8,
   },
   logoutText: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  nadesTile: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface,
+    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border,
+    padding: 16, marginTop: -14, marginBottom: 28,
+    ...shadows.subtle,
+  },
+  nadesTileIcon: { fontSize: 26, marginRight: 14 },
+  nadesTileName: { color: colors.text, fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  nadesTileHint: { color: colors.textMuted, fontSize: 12 },
+  nadesChevron: { color: colors.textFaint, fontSize: 24, marginLeft: 8 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800', marginBottom: 14, letterSpacing: -0.3 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14 },
   tile: {

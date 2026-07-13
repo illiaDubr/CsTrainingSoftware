@@ -118,6 +118,20 @@ export default function PlayerDashboard() {
         <Text style={styles.chevron}>›</Text>
       </TouchableOpacity>
 
+      {/* Раскидки */}
+      <TouchableOpacity
+        style={styles.routineTile}
+        activeOpacity={0.7}
+        onPress={() => router.push('/(player)/nades')}
+      >
+        <Text style={styles.routineTileIcon}>💣</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.routineTileName}>Раскидки</Text>
+          <Text style={styles.routineTileHint}>Гранаты от тренера по картам</Text>
+        </View>
+        <Text style={styles.chevron}>›</Text>
+      </TouchableOpacity>
+
       {/* Команды */}
       <Text style={styles.sectionTitle}>Твои команды</Text>
 
@@ -179,7 +193,7 @@ const styles = StyleSheet.create({
   routineTile: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface,
     borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border,
-    padding: 16, marginBottom: 28,
+    padding: 16, marginBottom: 14,
     ...shadows.subtle,
   },
   routineTileIcon: { fontSize: 26, marginRight: 14 },
