@@ -34,4 +34,21 @@ export const authService = {
   async getStoredToken() {
     return await storage.getItem('access_token');
   },
+
+  /**
+   * Загружает профиль с ретраями при СЕТЕВЫХ ошибках (холодный старт сервера).
+   * Ошибки с ответом сервера (401 и т.п.) пробрасываются сразу.
+   */
+  async fetchMe(maxAttempts = 3) {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const { data } = await apiClient.get('/users/me');
+        return data.data;
+      } catch (err: any) {
+        const isNetworkError = !err.response;
+        if (!isNetworkError || attempt >= maxAttempts) throw err;
+        await new Promise(r => setTimeout(r, 2000 * attempt));
+      }
+    }
+  },
 };

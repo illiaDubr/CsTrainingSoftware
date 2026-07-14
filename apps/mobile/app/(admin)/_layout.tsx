@@ -1,4 +1,10 @@
 import { Stack } from 'expo-router';
-export default function PlayerLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+import { RoleGuard } from '../../src/components/RoleGuard';
+
+export default function AdminLayout() {
+  return (
+    <RoleGuard role="admin">
+      <Stack screenOptions={{ headerShown: false }} />
+    </RoleGuard>
+  );
 }

@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 interface ActivityDay {
   date: string;
@@ -26,6 +26,7 @@ const MONTH_NAMES = ['Янв','Фев','Мар','Апр','Май','Июн','Ию
 const DAY_NAMES = ['Пн','','Ср','','Пт','',''];
 
 export function ActivityHeatmap({ activity, total }: Props) {
+  const scrollRef = useRef<ScrollView>(null);
   const { weeks, monthLabels } = useMemo(() => {
     const map = new Map<string, number>();
     for (const a of activity) map.set(a.date, a.count);
@@ -102,7 +103,13 @@ while (true) {
         <Text style={styles.total}>{total} выполнено за год</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator
+        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
+        contentContainerStyle={{ paddingBottom: 8 }}
+      >
         <View>
           {/* Метки месяцев */}
           <View style={styles.monthRow}>
@@ -218,7 +225,7 @@ const styles = StyleSheet.create({
     marginBottom: GAP,
   },
   cellToday: {
-    borderWidth: 0.5,
+    borderWidth: 1.5,
     borderColor: '#f59e0b',
   },
   legend: {
