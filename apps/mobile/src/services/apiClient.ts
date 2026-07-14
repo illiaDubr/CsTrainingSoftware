@@ -5,7 +5,7 @@ import { storage } from './storage';
 export const apiClient = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
+  timeout: 30000, // запас на холодный старт бэкенда
 });
 
 apiClient.interceptors.request.use(async (config) => {
