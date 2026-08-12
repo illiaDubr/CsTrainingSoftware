@@ -18,6 +18,7 @@ import routineRoutes from './routes/routines';
 import statsRoutes from './routes/stats';
 import mapRoutes from './routes/maps';
 import nadeRoutes from './routes/nades';
+import matchRoutes from './routes/matches';
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/routines', routineRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/maps', mapRoutes);
 app.use('/api/nades', nadeRoutes);
+app.use('/api/matches', matchRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

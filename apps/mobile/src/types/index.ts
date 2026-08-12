@@ -133,3 +133,18 @@ export interface NadeMapSummary {
   map_name: string;
   count: number;
 }
+
+// --- Матчи ---
+export type MatchClass = 'esea' | 'other';
+
+export interface Match {
+  id: number;
+  group_id: number;
+  created_by: number;
+  created_by_username?: string;
+  match_class: MatchClass;
+  opponent: string;
+  scheduled_at: string;
+  note?: string;
+  created_at: string;
+}

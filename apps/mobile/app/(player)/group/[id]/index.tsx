@@ -5,30 +5,33 @@ import { tasksService } from '../../../../src/services/tasksService';
 import { trainingsService } from '../../../../src/services/trainingsService';
 import { materialsService } from '../../../../src/services/materialsService';
 import { routinesService } from '../../../../src/services/routinesService';
+import { matchesService } from '../../../../src/services/matchesService';
 import { Routine } from '../../../../src/types';
 
 export default function PlayerGroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0 });
+  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, matches: 0 });
   const [routinesDone, setRoutinesDone] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
-      const [routineList, taskList, trainingList, materialList] = await Promise.all([
+      const [routineList, taskList, trainingList, materialList, matchList] = await Promise.all([
         routinesService.getRoutinesByGroup(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
         trainingsService.getTrainingsByGroup(Number(id)),
         materialsService.getMaterialsByGroup(Number(id)),
+        matchesService.getMatchesByGroup(Number(id)).catch(() => []),
       ]);
       setCounts({
         routines: routineList.length,
         tasks: taskList.length,
         trainings: trainingList.length,
         materials: materialList.length,
+        matches: matchList.length,
       });
       setRoutinesDone(
         (routineList as Routine[]).filter((r) => r.todayStatus === 'completed').length
@@ -61,6 +64,7 @@ export default function PlayerGroupScreen() {
   }
 
   const TILES = [
+    { key: 'matches', label: 'Матчи', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(player)/group/${id}/matches` },
     {
       key: 'routines', label: 'Рутина', icon: '🔁',
       count: counts.routines,
