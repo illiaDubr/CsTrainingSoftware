@@ -134,7 +134,9 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
                     ellipsizeMode="tail"
                     style={[styles.matchLabel, { color: labelColor }]}
                   >
-                    {dayMatches.length > 1 ? `${dayMatches.length} матча` : dayMatches[0].opponent}
+                    {dayMatches.length > 1
+                      ? `${dayMatches.length} матча`
+                      : new Date(dayMatches[0].scheduled_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 ) : null}
               </TouchableOpacity>
