@@ -6,24 +6,26 @@ import { tasksService } from '../../../../src/services/tasksService';
 import { trainingsService } from '../../../../src/services/trainingsService';
 import { materialsService } from '../../../../src/services/materialsService';
 import { routinesService } from '../../../../src/services/routinesService';
+import { matchesService } from '../../../../src/services/matchesService';
 
 export default function CoachGroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
   const [groupName, setGroupName] = useState('');
-  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, members: 0 });
+  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, members: 0, matches: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
-      const [group, taskList, trainingList, materialList, routineList] = await Promise.all([
+      const [group, taskList, trainingList, materialList, routineList, matchList] = await Promise.all([
         groupsService.getGroupById(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
         trainingsService.getTrainingsByGroup(Number(id)),
         materialsService.getMaterialsByGroup(Number(id)),
         routinesService.getRoutinesByGroup(Number(id)),
+        matchesService.getMatchesByGroup(Number(id)).catch(() => []),
       ]);
       setGroupName(group.name);
       setCounts({
@@ -32,6 +34,7 @@ export default function CoachGroupScreen() {
         trainings: trainingList.length,
         materials: materialList.length,
         members: group.members?.length ?? 0,
+        matches: matchList.length,
       });
     } catch {
       // тихо
@@ -61,6 +64,7 @@ export default function CoachGroupScreen() {
   }
 
   const TILES = [
+    { key: 'matches', label: 'Матчи', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(coach)/group/${id}/matches` },
     { key: 'routines', label: 'Рутина', icon: '🔁', count: counts.routines, hint: 'Ежедневные задания', route: `/(coach)/group/${id}/routines` },
     { key: 'tasks', label: 'Задачи', icon: '📋', count: counts.tasks, hint: 'Разовые задачи', route: `/(coach)/group/${id}/tasks` },
     { key: 'trainings', label: 'Тренировки', icon: '🎯', count: counts.trainings, hint: 'Расписание', route: `/(coach)/group/${id}/trainings` },
