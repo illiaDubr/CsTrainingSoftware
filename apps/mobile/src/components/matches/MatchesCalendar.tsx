@@ -105,8 +105,9 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
             const dayMatches = matchesByDate.get(dateStr) || [];
             const isToday = dateStr === todayStr;
             const isSelected = dateStr === selectedDate;
-            const hasEsea = dayMatches.some((m) => m.match_class === 'esea');
-            const hasOther = dayMatches.some((m) => m.match_class === 'other');
+            const hasMatch = dayMatches.length > 0;
+            const primaryMeta = hasMatch ? CLASS_META[dayMatches[0].match_class] : null;
+            const labelColor = isSelected ? '#171000' : primaryMeta?.color;
 
             return (
               <TouchableOpacity
@@ -115,6 +116,7 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
                 onPress={() => onSelectDate(dateStr)}
                 style={[
                   styles.cell,
+                  hasMatch && !isSelected && { backgroundColor: primaryMeta!.softColor, borderColor: primaryMeta!.color },
                   isToday && !isSelected && styles.cellToday,
                   isSelected && styles.cellSelected,
                 ]}
@@ -126,11 +128,14 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
                 ]}>
                   {day}
                 </Text>
-                {dayMatches.length > 0 ? (
-                  <View style={styles.dotsRow}>
-                    {hasEsea ? <View style={[styles.dot, { backgroundColor: isSelected ? '#171000' : CLASS_META.esea.color }]} /> : null}
-                    {hasOther ? <View style={[styles.dot, { backgroundColor: isSelected ? '#171000' : CLASS_META.other.color }]} /> : null}
-                  </View>
+                {hasMatch ? (
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={[styles.matchLabel, { color: labelColor }]}
+                  >
+                    {dayMatches.length > 1 ? `${dayMatches.length} матча` : dayMatches[0].opponent}
+                  </Text>
                 ) : null}
               </TouchableOpacity>
             );
@@ -167,18 +172,18 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   dayLabel: { flex: 1, textAlign: 'center', color: '#748099', fontSize: 11, fontWeight: '600' },
   cell: {
-    flex: 1, aspectRatio: 1, marginHorizontal: 2, borderRadius: 10,
-    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'transparent',
+    flex: 1, minHeight: 46, marginHorizontal: 2, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 2,
+    justifyContent: 'flex-start', alignItems: 'center', borderWidth: 1, borderColor: 'transparent', overflow: 'hidden',
   },
-  emptyCell: { flex: 1, aspectRatio: 1, marginHorizontal: 2 },
+  emptyCell: { flex: 1, minHeight: 46, marginHorizontal: 2 },
   cellToday: { borderColor: '#f59e0b' },
   cellSelected: { backgroundColor: '#f59e0b' },
   dayNum: { color: '#F8FAFC', fontSize: 13, fontWeight: '600' },
   dayNumToday: { color: '#f59e0b', fontWeight: '800' },
   dayNumSelected: { color: '#171000', fontWeight: '800' },
-  dotsRow: { flexDirection: 'row', gap: 2, marginTop: 2, height: 5 },
-  dot: { width: 5, height: 5, borderRadius: 2.5 },
+  matchLabel: { fontSize: 9, fontWeight: '800', marginTop: 3, maxWidth: '100%', textAlign: 'center' },
   legend: { flexDirection: 'row', gap: 16, marginTop: 12, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  dot: { width: 7, height: 7, borderRadius: 3.5 },
   legendText: { color: '#748099', fontSize: 11 },
 });
