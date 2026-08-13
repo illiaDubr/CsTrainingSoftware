@@ -64,7 +64,7 @@ export default function PlayerGroupScreen() {
   }
 
   const TILES = [
-    { key: 'matches', label: 'Матчи', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(player)/group/${id}/matches` },
+    { key: 'matches', label: 'Календарь матчей', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(player)/group/${id}/matches` },
     {
       key: 'routines', label: 'Рутина', icon: '🔁',
       count: counts.routines,

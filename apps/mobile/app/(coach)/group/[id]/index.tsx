@@ -64,7 +64,7 @@ export default function CoachGroupScreen() {
   }
 
   const TILES = [
-    { key: 'matches', label: 'Матчи', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(coach)/group/${id}/matches` },
+    { key: 'matches', label: 'Календарь матчей', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(coach)/group/${id}/matches` },
     { key: 'routines', label: 'Рутина', icon: '🔁', count: counts.routines, hint: 'Ежедневные задания', route: `/(coach)/group/${id}/routines` },
     { key: 'tasks', label: 'Задачи', icon: '📋', count: counts.tasks, hint: 'Разовые задачи', route: `/(coach)/group/${id}/tasks` },
     { key: 'trainings', label: 'Тренировки', icon: '🎯', count: counts.trainings, hint: 'Расписание', route: `/(coach)/group/${id}/trainings` },

@@ -48,7 +48,7 @@ export default function EditMatchScreen() {
 
   const handleSave = async () => {
     if (!opponent.trim() || !dateStr.trim() || !timeStr.trim()) {
-      showAlert('Ошибка', 'Заполни соперника, дату и время');
+      showAlert('Ошибка', 'Заполни название, дату и время');
       return;
     }
 
@@ -87,7 +87,7 @@ export default function EditMatchScreen() {
   };
 
   const handleDelete = () => {
-    showConfirm('Удалить матч?', `vs ${opponent}`, async () => {
+    showConfirm('Удалить матч?', opponent, async () => {
       setDeleting(true);
       try {
         await matchesService.deleteMatch(Number(matchId));
@@ -150,7 +150,7 @@ export default function EditMatchScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Соперник (название команды)"
+          placeholder="Соперник или название турнира"
           placeholderTextColor="#5B677D"
           value={opponent}
           onChangeText={setOpponent}
