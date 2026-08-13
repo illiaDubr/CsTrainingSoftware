@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { authenticate, authorize } from '../../middlewares/auth';
-import { UserRole } from '../../models/user.model';
+import { authenticate } from '../../middlewares/auth';
 import {
-  getActiveMapsController,
+  getActiveMapController,
   createMapController,
   deleteMapController,
 } from '../../controllers/maps/maps.controller';
@@ -11,11 +10,11 @@ const router = Router();
 
 router.use(authenticate);
 
-// Активные карты дня (для любой роли)
-router.get('/current', getActiveMapsController);
+// Активная карта дня группы — любой участник группы
+router.get('/current', getActiveMapController);
 
-// Назначить / снять карту — тренер
-router.post('/', authorize(UserRole.COACH), createMapController);
-router.delete('/:id', authorize(UserRole.COACH), deleteMapController);
+// Назначить / снять карту — тренер или помощник тренера этой группы (проверка в сервисе)
+router.post('/', createMapController);
+router.delete('/:id', deleteMapController);
 
 export default router;

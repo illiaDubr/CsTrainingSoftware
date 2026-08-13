@@ -3,8 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import { authenticate, authorize } from '../../middlewares/auth';
-import { UserRole } from '../../models/user.model';
+import { authenticate } from '../../middlewares/auth';
 import {
   getNadeMapsController,
   getNadesController,
@@ -39,15 +38,15 @@ const router = Router();
 
 router.use(authenticate);
 
-// Просмотр — все роли (игрок видит раскидки тренеров своих групп)
+// Просмотр — любой участник группы
 router.get('/maps', getNadeMapsController);
 router.get('/', getNadesController);
 
-// Управление — только тренер
-router.post('/', authorize(UserRole.COACH), upload.array('images', 6), createNadeController);
-router.patch('/:id', authorize(UserRole.COACH), updateNadeController);
-router.post('/:id/images', authorize(UserRole.COACH), upload.array('images', 6), addNadeImagesController);
-router.delete('/images/:imageId', authorize(UserRole.COACH), deleteNadeImageController);
-router.delete('/:id', authorize(UserRole.COACH), deleteNadeController);
+// Управление — тренер или помощник тренера этой группы (проверка в сервисе)
+router.post('/', upload.array('images', 6), createNadeController);
+router.patch('/:id', updateNadeController);
+router.post('/:id/images', upload.array('images', 6), addNadeImagesController);
+router.delete('/images/:imageId', deleteNadeImageController);
+router.delete('/:id', deleteNadeController);
 
 export default router;

@@ -15,7 +15,7 @@ const MAX_IMAGES = 6;
 
 export default function EditNadeScreen() {
   const router = useRouter();
-  const { nadeId, map } = useLocalSearchParams<{ nadeId: string; map?: string }>();
+  const { groupId, nadeId, map } = useLocalSearchParams<{ groupId: string; nadeId: string; map?: string }>();
 
   const [mapName, setMapName] = useState('');
   const [title, setTitle] = useState('');
@@ -32,7 +32,7 @@ export default function EditNadeScreen() {
   useEffect(() => {
     const load = async () => {
       try {
-        const list: Nade[] = await nadesService.getNadesByMap(decodeURIComponent(map || ''));
+        const list: Nade[] = await nadesService.getNadesByMap(Number(groupId), decodeURIComponent(map || ''));
         const nade = list.find(n => n.id === Number(nadeId));
         if (!nade) {
           setNotFound(true);

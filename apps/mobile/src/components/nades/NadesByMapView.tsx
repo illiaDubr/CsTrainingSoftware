@@ -11,12 +11,13 @@ import { NadeDetailModal } from './NadeDetailModal';
 import { CATEGORY_META, CATEGORY_ORDER, NADE_TYPE_META, NADE_TYPE_ORDER, SIDE_META } from './nadeMeta';
 
 interface Props {
+  groupId: number;
   mapName: string;
   onEdit?: (nade: Nade) => void;
   onDelete?: (nade: Nade, reload: () => void) => void;
 }
 
-export function NadesByMapView({ mapName, onEdit, onDelete }: Props) {
+export function NadesByMapView({ groupId, mapName, onEdit, onDelete }: Props) {
   const [nades, setNades] = useState<Nade[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,7 +27,7 @@ export function NadesByMapView({ mapName, onEdit, onDelete }: Props) {
 
   const loadData = async () => {
     try {
-      setNades(await nadesService.getNadesByMap(mapName));
+      setNades(await nadesService.getNadesByMap(groupId, mapName));
     } catch {
       // тихо
     } finally {
@@ -38,7 +39,7 @@ export function NadesByMapView({ mapName, onEdit, onDelete }: Props) {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [mapName])
+    }, [groupId, mapName])
   );
 
   const handleRefresh = () => {

@@ -13,23 +13,27 @@ const filesToPaths = (req: AuthRequest): string[] => {
 
 export const getNadeMapsController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const maps = await nadesService.getNadeMaps(req.user!.userId, req.user!.role);
+    const { groupId } = req.query;
+    if (!groupId) return res.status(400).json({ success: false, message: 'groupId is required' });
+    const maps = await nadesService.getNadeMaps(Number(groupId), req.user!.userId, req.user!.role);
     res.json({ success: true, data: maps });
   } catch (err) { next(err); }
 };
 
 export const getNadesController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { mapName } = req.query;
+    const { groupId, mapName } = req.query;
+    if (!groupId) return res.status(400).json({ success: false, message: 'groupId is required' });
     if (!mapName) return res.status(400).json({ success: false, message: 'mapName is required' });
-    const nades = await nadesService.getNadesByMap(req.user!.userId, req.user!.role, String(mapName));
+    const nades = await nadesService.getNadesByMap(Number(groupId), req.user!.userId, req.user!.role, String(mapName));
     res.json({ success: true, data: nades });
   } catch (err) { next(err); }
 };
 
 export const createNadeController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { map_name, side, category, nade_type, title, description } = req.body;
+    const { group_id, map_name, side, category, nade_type, title, description } = req.body;
+    if (!group_id) return res.status(400).json({ success: false, message: 'group_id is required' });
     if (!map_name || !String(map_name).trim() || !title || !String(title).trim()) {
       return res.status(400).json({ success: false, message: 'map_name and title are required' });
     }
@@ -38,7 +42,7 @@ export const createNadeController = async (req: AuthRequest, res: Response, next
     if (!NADE_TYPES.includes(nade_type)) return res.status(400).json({ success: false, message: 'invalid nade_type' });
 
     const nade = await nadesService.createNade(
-      req.user!.userId,
+      Number(group_id), req.user!.userId, req.user!.role,
       { map_name, side, category, nade_type, title, description },
       filesToPaths(req),
     );
@@ -54,7 +58,7 @@ export const updateNadeController = async (req: AuthRequest, res: Response, next
     if (nade_type !== undefined && !NADE_TYPES.includes(nade_type)) return res.status(400).json({ success: false, message: 'invalid nade_type' });
     if (title !== undefined && !String(title).trim()) return res.status(400).json({ success: false, message: 'title cannot be empty' });
 
-    const nade = await nadesService.updateNade(Number(req.params.id), req.user!.userId, {
+    const nade = await nadesService.updateNade(Number(req.params.id), req.user!.userId, req.user!.role, {
       map_name, side, category, nade_type, title, description,
     });
     res.json({ success: true, data: nade });
@@ -65,21 +69,21 @@ export const addNadeImagesController = async (req: AuthRequest, res: Response, n
   try {
     const paths = filesToPaths(req);
     if (paths.length === 0) return res.status(400).json({ success: false, message: 'no images uploaded' });
-    const nade = await nadesService.addNadeImages(Number(req.params.id), req.user!.userId, paths);
+    const nade = await nadesService.addNadeImages(Number(req.params.id), req.user!.userId, req.user!.role, paths);
     res.json({ success: true, data: nade });
   } catch (err) { next(err); }
 };
 
 export const deleteNadeImageController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await nadesService.deleteNadeImage(Number(req.params.imageId), req.user!.userId);
+    const result = await nadesService.deleteNadeImage(Number(req.params.imageId), req.user!.userId, req.user!.role);
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };
 
 export const deleteNadeController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await nadesService.deleteNade(Number(req.params.id), req.user!.userId);
+    const result = await nadesService.deleteNade(Number(req.params.id), req.user!.userId, req.user!.role);
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };

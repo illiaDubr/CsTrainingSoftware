@@ -7,25 +7,32 @@ import { trainingsService } from '../../../../src/services/trainingsService';
 import { materialsService } from '../../../../src/services/materialsService';
 import { routinesService } from '../../../../src/services/routinesService';
 import { matchesService } from '../../../../src/services/matchesService';
+import { nadesService } from '../../../../src/services/nadesService';
+import { mapsService, MapOfDay } from '../../../../src/services/mapsService';
+import { MapOfDayBanner } from '../../../../src/components/ui/MapOfDayBanner';
+import { showAlert, showConfirm } from '../../../../src/utils/alert';
 
 export default function CoachGroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
   const [groupName, setGroupName] = useState('');
-  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, members: 0, matches: 0 });
+  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, members: 0, matches: 0, nades: 0 });
+  const [activeMap, setActiveMap] = useState<MapOfDay | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
-      const [group, taskList, trainingList, materialList, routineList, matchList] = await Promise.all([
+      const [group, taskList, trainingList, materialList, routineList, matchList, nadeMaps, map] = await Promise.all([
         groupsService.getGroupById(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
         trainingsService.getTrainingsByGroup(Number(id)),
         materialsService.getMaterialsByGroup(Number(id)),
         routinesService.getRoutinesByGroup(Number(id)),
         matchesService.getMatchesByGroup(Number(id)).catch(() => []),
+        nadesService.getMaps(Number(id)).catch(() => []),
+        mapsService.getActiveMap(Number(id)).catch(() => null),
       ]);
       setGroupName(group.name);
       setCounts({
@@ -35,13 +42,27 @@ export default function CoachGroupScreen() {
         materials: materialList.length,
         members: group.members?.length ?? 0,
         matches: matchList.length,
+        nades: nadeMaps.length,
       });
+      setActiveMap(map);
     } catch {
       // тихо
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
+  };
+
+  const handleRemoveMap = () => {
+    if (!activeMap) return;
+    showConfirm('Снять карту дня?', activeMap.map_name, async () => {
+      try {
+        await mapsService.deleteMap(activeMap.id);
+        setActiveMap(null);
+      } catch {
+        showAlert('Ошибка', 'Не удалось снять карту');
+      }
+    });
   };
 
   useFocusEffect(
@@ -65,6 +86,7 @@ export default function CoachGroupScreen() {
 
   const TILES = [
     { key: 'matches', label: 'Календарь матчей', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(coach)/group/${id}/matches` },
+    { key: 'nades', label: 'Раскидки', icon: '💣', count: counts.nades, hint: 'Гранаты по картам', route: `/(coach)/group/${id}/nades` },
     { key: 'routines', label: 'Рутина', icon: '🔁', count: counts.routines, hint: 'Ежедневные задания', route: `/(coach)/group/${id}/routines` },
     { key: 'tasks', label: 'Задачи', icon: '📋', count: counts.tasks, hint: 'Разовые задачи', route: `/(coach)/group/${id}/tasks` },
     { key: 'trainings', label: 'Тренировки', icon: '🎯', count: counts.trainings, hint: 'Расписание', route: `/(coach)/group/${id}/trainings` },
@@ -84,6 +106,27 @@ export default function CoachGroupScreen() {
 
       <Text style={styles.title}>{groupName}</Text>
       <Text style={styles.subtitle}>Выбери раздел</Text>
+
+      {activeMap ? (
+        <MapOfDayBanner
+          map={activeMap}
+          onPress={() => router.push(`/(coach)/set-map?groupId=${id}` as any)}
+          onRemove={handleRemoveMap}
+        />
+      ) : (
+        <TouchableOpacity
+          style={styles.setMapTile}
+          activeOpacity={0.7}
+          onPress={() => router.push(`/(coach)/set-map?groupId=${id}` as any)}
+        >
+          <Text style={styles.setMapIcon}>🗺️</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.setMapTitle}>Назначить карту дня</Text>
+            <Text style={styles.setMapHint}>Игроки этой команды увидят её у себя</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.grid}>
         {TILES.map((t) => (
@@ -141,4 +184,13 @@ const styles = StyleSheet.create({
   countText: { color: '#f59e0b', fontSize: 13, fontWeight: '700' },
   tileLabel: { color: '#F8FAFC', fontSize: 16, fontWeight: '700', marginBottom: 4 },
   tileHint: { color: '#748099', fontSize: 12 },
+  setMapTile: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#151827',
+    borderRadius: 16, borderWidth: 1, borderColor: '#242A40',
+    padding: 16, marginBottom: 14,
+  },
+  setMapIcon: { fontSize: 24, marginRight: 12 },
+  setMapTitle: { color: '#F8FAFC', fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  setMapHint: { color: '#748099', fontSize: 12 },
+  chevron: { color: '#748099', fontSize: 22, marginLeft: 8 },
 });

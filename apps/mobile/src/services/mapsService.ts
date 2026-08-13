@@ -2,6 +2,7 @@ import { apiClient } from './apiClient';
 
 export interface MapOfDay {
   id: number;
+  group_id: number;
   coach_id: number;
   coach_username?: string;
   map_name: string;
@@ -10,12 +11,12 @@ export interface MapOfDay {
 }
 
 export const mapsService = {
-  async getActiveMaps(): Promise<MapOfDay[]> {
-    const { data } = await apiClient.get('/maps/current');
+  async getActiveMap(groupId: number): Promise<MapOfDay | null> {
+    const { data } = await apiClient.get(`/maps/current?groupId=${groupId}`);
     return data.data;
   },
 
-  async createMap(dto: { map_name: string; start_date: string; end_date: string }): Promise<MapOfDay> {
+  async createMap(dto: { group_id: number; map_name: string; start_date: string; end_date: string }): Promise<MapOfDay> {
     const { data } = await apiClient.post('/maps', dto);
     return data.data;
   },

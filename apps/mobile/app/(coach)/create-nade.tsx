@@ -15,7 +15,7 @@ const MAX_IMAGES = 6;
 
 export default function CreateNadeScreen() {
   const router = useRouter();
-  const { map } = useLocalSearchParams<{ map?: string }>();
+  const { groupId, map } = useLocalSearchParams<{ groupId: string; map?: string }>();
 
   const [mapName, setMapName] = useState(map ? decodeURIComponent(map) : '');
   const [title, setTitle] = useState('');
@@ -56,6 +56,7 @@ export default function CreateNadeScreen() {
     setLoading(true);
     try {
       await nadesService.createNade({
+        group_id: Number(groupId),
         map_name: mapName.trim(),
         side,
         category,

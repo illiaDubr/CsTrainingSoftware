@@ -1,24 +1,9 @@
 import { db } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
-import { hasCoachAccess } from '../groups/groupAccess';
-
-const assertMembership = async (groupId: number, userId: number, role: string) => {
-  if (role === 'admin') return;
-
-  const group = await db('groups').where({ id: groupId }).first();
-  if (!group) throw new AppError('Group not found', 404);
-
-  if (role === 'coach') {
-    if (group.coach_id !== userId) throw new AppError('Access denied', 403);
-    return;
-  }
-
-  const member = await db('group_members').where({ group_id: groupId, player_id: userId }).first();
-  if (!member) throw new AppError('Access denied', 403);
-};
+import { hasCoachAccess, assertGroupMember } from '../groups/groupAccess';
 
 export const getMatchesByGroup = async (groupId: number, userId: number, role: string) => {
-  await assertMembership(groupId, userId, role);
+  await assertGroupMember(groupId, userId, role);
 
   return db('matches')
     .join('users', 'matches.created_by', 'users.id')
@@ -35,7 +20,7 @@ export const getMatchById = async (id: number, userId: number, role: string) => 
     .first();
   if (!match) throw new AppError('Match not found', 404);
 
-  await assertMembership(match.group_id, userId, role);
+  await assertGroupMember(match.group_id, userId, role);
   return match;
 };
 
@@ -46,7 +31,7 @@ export const createMatch = async (userId: number, role: string, dto: {
   scheduled_at: string;
   note?: string;
 }) => {
-  await assertMembership(dto.group_id, userId, role);
+  await assertGroupMember(dto.group_id, userId, role);
 
   const [match] = await db('matches')
     .insert({
