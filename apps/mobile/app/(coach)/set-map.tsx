@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { mapsService } from '../../src/services/mapsService';
 import { showAlert } from '../../src/utils/alert';
 import { colors, radius } from '../../src/theme';
@@ -19,6 +19,7 @@ const toDateStr = (d: Date) =>
 
 export default function SetMapScreen() {
   const router = useRouter();
+  const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
   const [mapName, setMapName] = useState('');
   const [durationDays, setDurationDays] = useState(0);
@@ -57,6 +58,7 @@ export default function SetMapScreen() {
     setLoading(true);
     try {
       await mapsService.createMap({
+        group_id: Number(groupId),
         map_name: mapName.trim(),
         start_date: toDateStr(today),
         end_date: toDateStr(endDate),
@@ -78,7 +80,7 @@ export default function SetMapScreen() {
 
         <Text style={styles.title}>🗺️ Карта дня</Text>
         <Text style={styles.subtitle}>
-          Игроки твоих команд увидят её на главном экране. Новая карта заменяет предыдущую
+          Игроки этой команды увидят её на главном экране группы. Новая карта заменяет предыдущую
         </Text>
 
         <Text style={styles.label}>Название карты</Text>

@@ -26,17 +26,18 @@ const appendImages = async (form: FormData, uris: string[]) => {
 };
 
 export const nadesService = {
-  async getMaps() {
-    const { data } = await apiClient.get('/nades/maps');
+  async getMaps(groupId: number) {
+    const { data } = await apiClient.get(`/nades/maps?groupId=${groupId}`);
     return data.data;
   },
 
-  async getNadesByMap(mapName: string) {
-    const { data } = await apiClient.get(`/nades?mapName=${encodeURIComponent(mapName)}`);
+  async getNadesByMap(groupId: number, mapName: string) {
+    const { data } = await apiClient.get(`/nades?groupId=${groupId}&mapName=${encodeURIComponent(mapName)}`);
     return data.data;
   },
 
   async createNade(dto: {
+    group_id: number;
     map_name: string;
     side: string;
     category: string;
@@ -45,6 +46,7 @@ export const nadesService = {
     description?: string;
   }, imageUris: string[]) {
     const form = new FormData();
+    form.append('group_id', String(dto.group_id));
     form.append('map_name', dto.map_name);
     form.append('side', dto.side);
     form.append('category', dto.category);

@@ -1,13 +1,15 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { NadesByMapView } from '../../../src/components/nades/NadesByMapView';
-import { FAB } from '../../../src/components/ui/FAB';
-import { nadesService } from '../../../src/services/nadesService';
-import { showAlert, showConfirm } from '../../../src/utils/alert';
+import { NadesByMapView } from '../../../../../src/components/nades/NadesByMapView';
+import { FAB } from '../../../../../src/components/ui/FAB';
+import { nadesService } from '../../../../../src/services/nadesService';
+import { showAlert, showConfirm } from '../../../../../src/utils/alert';
+import { useGroupPermission } from '../../../../../src/hooks/useGroupPermission';
 
-export default function CoachNadesMapScreen() {
-  const { map } = useLocalSearchParams<{ map: string }>();
+export default function GroupNadesMapScreen() {
+  const { id, map } = useLocalSearchParams<{ id: string; map: string }>();
   const router = useRouter();
+  const { canManage, pathPrefix } = useGroupPermission(Number(id));
   const mapName = decodeURIComponent(map || '');
 
   return (
@@ -18,9 +20,10 @@ export default function CoachNadesMapScreen() {
       <Text style={styles.title}>🗺️ {mapName}</Text>
 
       <NadesByMapView
+        groupId={Number(id)}
         mapName={mapName}
-        onEdit={(nade) => router.push(`/(coach)/edit-nade?nadeId=${nade.id}&map=${encodeURIComponent(mapName)}`)}
-        onDelete={(nade, reload) => {
+        onEdit={canManage ? (nade) => router.push(`${pathPrefix}/edit-nade?groupId=${id}&nadeId=${nade.id}&map=${encodeURIComponent(mapName)}` as any) : undefined}
+        onDelete={canManage ? (nade, reload) => {
           showConfirm('Удалить раскидку?', nade.title, async () => {
             try {
               await nadesService.deleteNade(nade.id);
@@ -29,10 +32,12 @@ export default function CoachNadesMapScreen() {
               showAlert('Ошибка', 'Не удалось удалить раскидку');
             }
           });
-        }}
+        } : undefined}
       />
 
-      <FAB onPress={() => router.push(`/(coach)/create-nade?map=${encodeURIComponent(mapName)}`)} />
+      {canManage ? (
+        <FAB onPress={() => router.push(`${pathPrefix}/create-nade?groupId=${id}&map=${encodeURIComponent(mapName)}` as any)} />
+      ) : null}
     </View>
   );
 }

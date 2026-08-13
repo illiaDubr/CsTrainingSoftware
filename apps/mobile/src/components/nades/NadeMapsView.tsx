@@ -8,18 +8,19 @@ import { NadeMapSummary } from '../../types';
 import { nadesService } from '../../services/nadesService';
 
 interface Props {
+  groupId: number;
   onMapPress: (mapName: string) => void;
   emptyHint: string;
 }
 
-export function NadeMapsView({ onMapPress, emptyHint }: Props) {
+export function NadeMapsView({ groupId, onMapPress, emptyHint }: Props) {
   const [maps, setMaps] = useState<NadeMapSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
-      setMaps(await nadesService.getMaps());
+      setMaps(await nadesService.getMaps(groupId));
     } catch {
       // тихо
     } finally {
@@ -31,7 +32,7 @@ export function NadeMapsView({ onMapPress, emptyHint }: Props) {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, [groupId])
   );
 
   const handleRefresh = () => {

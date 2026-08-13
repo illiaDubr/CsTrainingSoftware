@@ -8,9 +8,6 @@ import { authService } from '../../src/services/authService';
 import { groupsService } from '../../src/services/groupsService';
 import { Group } from '../../src/types';
 import { FAB } from '../../src/components/ui/FAB';
-import { MapOfDayBanner } from '../../src/components/ui/MapOfDayBanner';
-import { mapsService, MapOfDay } from '../../src/services/mapsService';
-import { showAlert, showConfirm } from '../../src/utils/alert';
 import { colors, gradients, radius, shadows } from '../../src/theme';
 
 export default function CoachDashboard() {
@@ -19,36 +16,19 @@ export default function CoachDashboard() {
   const user = useAppSelector(state => state.auth.user);
 
   const [groups, setGroups] = useState<Group[]>([]);
-  const [activeMap, setActiveMap] = useState<MapOfDay | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadGroups = async () => {
     try {
-      const [data, maps] = await Promise.all([
-        groupsService.getMyGroups(),
-        mapsService.getActiveMaps().catch(() => []),
-      ]);
+      const data = await groupsService.getMyGroups();
       setGroups(data);
-      setActiveMap(maps[0] ?? null);
     } catch {
       // тихо
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-
-  const handleRemoveMap = () => {
-    if (!activeMap) return;
-    showConfirm('Снять карту дня?', undefined, async () => {
-      try {
-        await mapsService.deleteMap(activeMap.id);
-        setActiveMap(null);
-      } catch {
-        showAlert('Ошибка', 'Не удалось снять карту');
-      }
-    }, 'Снять');
   };
 
   useFocusEffect(
@@ -107,42 +87,6 @@ export default function CoachDashboard() {
           </TouchableOpacity>
         </LinearGradient>
 
-        {/* Карта дня */}
-        {activeMap ? (
-          <MapOfDayBanner
-            map={activeMap}
-            onPress={() => router.push('/(coach)/set-map')}
-            onRemove={handleRemoveMap}
-          />
-        ) : (
-          <TouchableOpacity
-            style={styles.setMapTile}
-            activeOpacity={0.7}
-            onPress={() => router.push('/(coach)/set-map')}
-          >
-            <Text style={styles.setMapIcon}>🗺️</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.setMapTitle}>Назначить карту дня</Text>
-              <Text style={styles.setMapHint}>Игроки увидят её на главном экране</Text>
-            </View>
-            <Text style={styles.setMapChevron}>›</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Раскидки */}
-        <TouchableOpacity
-          style={styles.nadesTile}
-          activeOpacity={0.7}
-          onPress={() => router.push('/(coach)/nades')}
-        >
-          <Text style={styles.nadesTileIcon}>💣</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.nadesTileName}>Раскидки</Text>
-            <Text style={styles.nadesTileHint}>Гранаты по картам для всех команд</Text>
-          </View>
-          <Text style={styles.nadesChevron}>›</Text>
-        </TouchableOpacity>
-
         {/* Команды */}
         <Text style={styles.sectionTitle}>Твои команды</Text>
 
@@ -177,16 +121,6 @@ export default function CoachDashboard() {
 }
 
 const styles = StyleSheet.create({
-  setMapTile: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.surface, borderRadius: radius.xl,
-    borderWidth: 1, borderColor: colors.border, borderStyle: 'dashed',
-    padding: 14, marginBottom: 14,
-  },
-  setMapIcon: { fontSize: 24, marginRight: 12 },
-  setMapTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
-  setMapHint: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
-  setMapChevron: { color: colors.textFaint, fontSize: 22, marginLeft: 8 },
   wrapper: { flex: 1, backgroundColor: '#0B0D14' },
   container: { flex: 1 },
   content: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 100, width: '100%', maxWidth: 700, alignSelf: 'center' },
@@ -217,16 +151,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 7, marginLeft: 8,
   },
   logoutText: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
-  nadesTile: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface,
-    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border,
-    padding: 16, marginTop: -14, marginBottom: 28,
-    ...shadows.subtle,
-  },
-  nadesTileIcon: { fontSize: 26, marginRight: 14 },
-  nadesTileName: { color: colors.text, fontSize: 15, fontWeight: '700', marginBottom: 2 },
-  nadesTileHint: { color: colors.textMuted, fontSize: 12 },
-  nadesChevron: { color: colors.textFaint, fontSize: 24, marginLeft: 8 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800', marginBottom: 14, letterSpacing: -0.3 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14 },
   tile: {

@@ -4,17 +4,20 @@ import * as mapsService from '../../services/maps/maps.service';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-export const getActiveMapsController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getActiveMapController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const maps = await mapsService.getActiveMaps(req.user!.userId, req.user!.role);
-    res.json({ success: true, data: maps });
+    const { groupId } = req.query;
+    if (!groupId) return res.status(400).json({ success: false, message: 'groupId is required' });
+    const map = await mapsService.getActiveMap(Number(groupId), req.user!.userId, req.user!.role);
+    res.json({ success: true, data: map });
   } catch (err) { next(err); }
 };
 
 export const createMapController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { map_name, start_date, end_date } = req.body;
+    const { group_id, map_name, start_date, end_date } = req.body;
 
+    if (!group_id) return res.status(400).json({ success: false, message: 'group_id is required' });
     if (!map_name || !String(map_name).trim()) {
       return res.status(400).json({ success: false, message: 'map_name is required' });
     }
@@ -22,7 +25,7 @@ export const createMapController = async (req: AuthRequest, res: Response, next:
       return res.status(400).json({ success: false, message: 'start_date and end_date must be YYYY-MM-DD' });
     }
 
-    const map = await mapsService.createMap(req.user!.userId, {
+    const map = await mapsService.createMap(Number(group_id), req.user!.userId, req.user!.role, {
       map_name: String(map_name).trim(),
       start_date: String(start_date),
       end_date: String(end_date),
@@ -33,7 +36,7 @@ export const createMapController = async (req: AuthRequest, res: Response, next:
 
 export const deleteMapController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await mapsService.deleteMap(Number(req.params.id), req.user!.userId);
+    const result = await mapsService.deleteMap(Number(req.params.id), req.user!.userId, req.user!.role);
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };
