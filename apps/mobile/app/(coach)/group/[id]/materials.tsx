@@ -6,10 +6,12 @@ import { MaterialCard } from '../../../../src/components/cards/MaterialCard';
 import { Material } from '../../../../src/types';
 import { showAlert, showConfirm } from '../../../../src/utils/alert';
 import { FAB } from '../../../../src/components/ui/FAB';
+import { useGroupPermission } from '../../../../src/hooks/useGroupPermission';
 
-export default function CoachGroupMaterialsScreen() {
+export default function GroupMaterialsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { canManage, pathPrefix } = useGroupPermission(Number(id));
 
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,14 +76,16 @@ export default function CoachGroupMaterialsScreen() {
           renderItem={({ item }) => (
             <MaterialCard
               material={item}
-              onDelete={() => handleDelete(item.id)}
-              onEdit={() => router.push(`/(coach)/edit-material?groupId=${id}&materialId=${item.id}`)}
+              onDelete={canManage ? () => handleDelete(item.id) : undefined}
+              onEdit={canManage ? () => router.push(`${pathPrefix}/edit-material?groupId=${id}&materialId=${item.id}` as any) : undefined}
             />
           )}
         />
       )}
 
-      <FAB onPress={() => router.push(`/(coach)/create-material?groupId=${id}`)} />
+      {canManage ? (
+        <FAB onPress={() => router.push(`${pathPrefix}/create-material?groupId=${id}` as any)} />
+      ) : null}
     </View>
   );
 }
@@ -94,10 +98,4 @@ const styles = StyleSheet.create({
   list: { paddingBottom: 100 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: '#94A3B8', fontSize: 15 },
-  fab: {
-    position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#f59e0b', justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#f59e0b', shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6,
-  },
-  fabText: { color: '#000', fontSize: 28, fontWeight: '300', marginTop: -2 },
 });

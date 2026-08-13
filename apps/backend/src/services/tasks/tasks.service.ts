@@ -1,5 +1,6 @@
 import { db } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
+import { assertCoachAccess } from '../groups/groupAccess';
 
 export const getTasksByGroup = async (groupId: number, userId: number, role: string) => {
   const tasks = await db('tasks')
@@ -53,21 +54,21 @@ export const getTaskById = async (taskId: number, userId: number, role: string) 
   return task;
 };
 
-export const createTask = async (coachId: number, dto: {
+export const createTask = async (userId: number, role: string, dto: {
   group_id: number;
   title: string;
   description?: string;
   priority?: string;
   due_date?: string;
 }) => {
-  // Проверяем что группа принадлежит тренеру
-  const group = await db('groups').where({ id: dto.group_id, coach_id: coachId }).first();
-  if (!group) throw new AppError('Group not found or access denied', 404);
+  await assertCoachAccess(dto.group_id, userId, role);
+  const group = await db('groups').where({ id: dto.group_id }).first();
+  if (!group) throw new AppError('Group not found', 404);
 
   const [task] = await db('tasks')
     .insert({
       group_id: dto.group_id,
-      coach_id: coachId,
+      coach_id: group.coach_id,
       title: dto.title,
       description: dto.description,
       priority: dto.priority || 'medium',
@@ -86,14 +87,15 @@ export const createTask = async (coachId: number, dto: {
   return task;
 };
 
-export const updateTask = async (id: number, coachId: number, dto: {
+export const updateTask = async (id: number, userId: number, role: string, dto: {
   title?: string;
   description?: string;
   priority?: string;
   due_date?: string;
 }) => {
-  const task = await db('tasks').where({ id, coach_id: coachId }).first();
-  if (!task) throw new AppError('Task not found or access denied', 404);
+  const task = await db('tasks').where({ id }).first();
+  if (!task) throw new AppError('Task not found', 404);
+  await assertCoachAccess(task.group_id, userId, role);
 
   const [updated] = await db('tasks')
     .where({ id })
@@ -102,9 +104,10 @@ export const updateTask = async (id: number, coachId: number, dto: {
   return updated;
 };
 
-export const deleteTask = async (id: number, coachId: number) => {
-  const task = await db('tasks').where({ id, coach_id: coachId }).first();
-  if (!task) throw new AppError('Task not found or access denied', 404);
+export const deleteTask = async (id: number, userId: number, role: string) => {
+  const task = await db('tasks').where({ id }).first();
+  if (!task) throw new AppError('Task not found', 404);
+  await assertCoachAccess(task.group_id, userId, role);
 
   await db('tasks').where({ id }).delete();
   return { message: 'Task deleted' };

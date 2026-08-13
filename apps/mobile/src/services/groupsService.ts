@@ -25,4 +25,11 @@ export const groupsService = {
     const { data } = await apiClient.delete(`/groups/${groupId}/members/${playerId}`);
     return data.data;
   },
+
+  async setAssistantCoach(groupId: number, playerId: number, isAssistant: boolean) {
+    const { data } = await apiClient.patch(`/groups/${groupId}/members/${playerId}/assistant`, {
+      is_assistant_coach: isAssistant,
+    });
+    return data.data;
+  },
 };

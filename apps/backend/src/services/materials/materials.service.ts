@@ -1,5 +1,6 @@
 import { db } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
+import { assertCoachAccess } from '../groups/groupAccess';
 
 export const getMaterials = async (groupId: number) => {
   return db('materials')
@@ -8,30 +9,32 @@ export const getMaterials = async (groupId: number) => {
     .orderBy('created_at', 'desc');
 };
 
-export const createMaterial = async (coachId: number, dto: {
+export const createMaterial = async (userId: number, role: string, dto: {
   group_id: number;
   title: string;
   description?: string;
   external_url?: string;
   type: string;
 }) => {
-  const group = await db('groups').where({ id: dto.group_id, coach_id: coachId }).first();
-  if (!group) throw new AppError('Group not found or access denied', 404);
+  await assertCoachAccess(dto.group_id, userId, role);
+  const group = await db('groups').where({ id: dto.group_id }).first();
+  if (!group) throw new AppError('Group not found', 404);
 
   const [material] = await db('materials')
-    .insert({ ...dto, coach_id: coachId })
+    .insert({ ...dto, coach_id: group.coach_id })
     .returning('*');
   return material;
 };
 
-export const updateMaterial = async (id: number, coachId: number, dto: {
+export const updateMaterial = async (id: number, userId: number, role: string, dto: {
   title?: string;
   description?: string;
   external_url?: string;
   type?: string;
 }) => {
-  const material = await db('materials').where({ id, coach_id: coachId }).first();
-  if (!material) throw new AppError('Material not found or access denied', 404);
+  const material = await db('materials').where({ id }).first();
+  if (!material) throw new AppError('Material not found', 404);
+  await assertCoachAccess(material.group_id, userId, role);
 
   const [updated] = await db('materials')
     .where({ id })
@@ -40,9 +43,10 @@ export const updateMaterial = async (id: number, coachId: number, dto: {
   return updated;
 };
 
-export const deleteMaterial = async (id: number, coachId: number) => {
-  const material = await db('materials').where({ id, coach_id: coachId }).first();
-  if (!material) throw new AppError('Material not found or access denied', 404);
+export const deleteMaterial = async (id: number, userId: number, role: string) => {
+  const material = await db('materials').where({ id }).first();
+  if (!material) throw new AppError('Material not found', 404);
+  await assertCoachAccess(material.group_id, userId, role);
 
   await db('materials').where({ id }).delete();
   return { message: 'Material deleted' };

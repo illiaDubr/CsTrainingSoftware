@@ -28,7 +28,7 @@ export const createGroupController = async (req: AuthRequest, res: Response, nex
 export const updateGroupController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { name, description } = req.body;
-    const group = await groupsService.updateGroup(Number(req.params.id), req.user!.userId, { name, description });
+    const group = await groupsService.updateGroup(Number(req.params.id), req.user!.userId, req.user!.role, { name, description });
     res.json({ success: true, data: group });
   } catch (err) { next(err); }
 };
@@ -37,14 +37,27 @@ export const addMemberController = async (req: AuthRequest, res: Response, next:
   try {
     const { playerId } = req.body;
     if (!playerId) return res.status(400).json({ success: false, message: 'playerId is required' });
-    const result = await groupsService.addMember(Number(req.params.id), req.user!.userId, Number(playerId));
+    const result = await groupsService.addMember(Number(req.params.id), req.user!.userId, req.user!.role, Number(playerId));
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };
 
 export const removeMemberController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await groupsService.removeMember(Number(req.params.id), req.user!.userId, Number(req.params.playerId));
+    const result = await groupsService.removeMember(Number(req.params.id), req.user!.userId, req.user!.role, Number(req.params.playerId));
+    res.json({ success: true, data: result });
+  } catch (err) { next(err); }
+};
+
+export const setAssistantCoachController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { is_assistant_coach } = req.body;
+    if (typeof is_assistant_coach !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'is_assistant_coach must be a boolean' });
+    }
+    const result = await groupsService.setAssistantCoach(
+      Number(req.params.id), req.user!.userId, Number(req.params.playerId), is_assistant_coach
+    );
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };

@@ -17,7 +17,7 @@ export const createMaterialController = async (req: AuthRequest, res: Response, 
     if (!group_id || !title || !type) {
       return res.status(400).json({ success: false, message: 'group_id, title and type are required' });
     }
-    const material = await materialsService.createMaterial(req.user!.userId, { group_id, title, description, external_url, type });
+    const material = await materialsService.createMaterial(req.user!.userId, req.user!.role, { group_id, title, description, external_url, type });
     res.status(201).json({ success: true, data: material });
   } catch (err) { next(err); }
 };
@@ -25,14 +25,14 @@ export const createMaterialController = async (req: AuthRequest, res: Response, 
 export const updateMaterialController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { title, description, external_url, type } = req.body;
-    const material = await materialsService.updateMaterial(Number(req.params.id), req.user!.userId, { title, description, external_url, type });
+    const material = await materialsService.updateMaterial(Number(req.params.id), req.user!.userId, req.user!.role, { title, description, external_url, type });
     res.json({ success: true, data: material });
   } catch (err) { next(err); }
 };
 
 export const deleteMaterialController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await materialsService.deleteMaterial(Number(req.params.id), req.user!.userId);
+    const result = await materialsService.deleteMaterial(Number(req.params.id), req.user!.userId, req.user!.role);
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };

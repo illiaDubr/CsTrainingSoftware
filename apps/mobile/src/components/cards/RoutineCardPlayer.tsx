@@ -19,9 +19,11 @@ interface Props {
   routine: Routine;
   todayDate: string;
   onUpdateStatus: (routineId: number, status: TaskStatus, note: string, timeSpent: number | null) => Promise<void>;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props) {
+export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus, onEdit, onDelete }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus>(routine.todayStatus || 'pending');
   const [note, setNote] = useState(routine.todayNote || '');
@@ -56,6 +58,16 @@ export function RoutineCardPlayer({ routine, todayDate, onUpdateStatus }: Props)
           <Text style={[styles.title, { color: accent }]}>{routine.title}</Text>
         </View>
         <Text style={[styles.rate, { color: accent }]}>{routine.completionRate}%</Text>
+        {onEdit ? (
+          <TouchableOpacity onPress={onEdit} style={styles.cardActionBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text style={styles.cardActionEdit}>✎</Text>
+          </TouchableOpacity>
+        ) : null}
+        {onDelete ? (
+          <TouchableOpacity onPress={onDelete} style={styles.cardActionBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text style={styles.cardActionDelete}>✕</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {routine.description ? (
@@ -180,6 +192,9 @@ const styles = StyleSheet.create({
   priorityDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
   title: { color: '#F8FAFC', fontSize: 15, fontWeight: '700', flex: 1 },
   rate: { color: '#f59e0b', fontSize: 14, fontWeight: '700' },
+  cardActionBtn: { padding: 4, marginLeft: 8 },
+  cardActionEdit: { color: '#f59e0b', fontSize: 14 },
+  cardActionDelete: { color: '#94A3B8', fontSize: 14 },
   description: { color: '#94A3B8', fontSize: 12, marginBottom: 4 },
   legend: { flexDirection: 'row', gap: 12, marginTop: 10, marginBottom: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },

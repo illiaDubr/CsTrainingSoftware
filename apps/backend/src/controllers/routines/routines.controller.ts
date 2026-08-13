@@ -20,7 +20,7 @@ export const getPersonalRoutinesController = async (req: AuthRequest, res: Respo
 
 export const getPlayerPersonalRoutinesController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const routines = await routinesService.getPersonalRoutinesForCoach(req.user!.userId, Number(req.params.playerId));
+    const routines = await routinesService.getPersonalRoutinesForCoach(req.user!.userId, req.user!.role, Number(req.params.playerId));
     res.json({ success: true, data: routines });
   } catch (err) { next(err); }
 };
@@ -38,7 +38,7 @@ export const createRoutineController = async (req: AuthRequest, res: Response, n
   try {
     const { group_id, title, description, priority } = req.body;
     if (!group_id || !title) return res.status(400).json({ success: false, message: 'group_id and title are required' });
-    const routine = await routinesService.createRoutine(req.user!.userId, { group_id, title, description, priority });
+    const routine = await routinesService.createRoutine(req.user!.userId, req.user!.role, { group_id, title, description, priority });
     res.status(201).json({ success: true, data: routine });
   } catch (err) { next(err); }
 };
@@ -52,14 +52,14 @@ export const updateRoutineController = async (req: AuthRequest, res: Response, n
     if (priority !== undefined && !['low', 'medium', 'high'].includes(priority)) {
       return res.status(400).json({ success: false, message: 'invalid priority' });
     }
-    const routine = await routinesService.updateRoutine(Number(req.params.id), req.user!.userId, { title, description, priority });
+    const routine = await routinesService.updateRoutine(Number(req.params.id), req.user!.userId, req.user!.role, { title, description, priority });
     res.json({ success: true, data: routine });
   } catch (err) { next(err); }
 };
 
 export const deactivateRoutineController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await routinesService.deactivateRoutine(Number(req.params.id), req.user!.userId);
+    const result = await routinesService.deactivateRoutine(Number(req.params.id), req.user!.userId, req.user!.role);
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };
@@ -76,7 +76,7 @@ export const overrideRoutineProgressController = async (req: AuthRequest, res: R
     if (!['pending', 'in_progress', 'completed'].includes(status)) {
       return res.status(400).json({ success: false, message: 'invalid status' });
     }
-    const progress = await routinesService.overrideRoutineProgress(req.user!.userId, Number(req.params.id), {
+    const progress = await routinesService.overrideRoutineProgress(req.user!.userId, req.user!.role, Number(req.params.id), {
       player_id: Number(player_id),
       date: String(date),
       status,

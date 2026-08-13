@@ -1,5 +1,6 @@
 import { db } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
+import { hasCoachAccess } from '../groups/groupAccess';
 
 const assertMembership = async (groupId: number, userId: number, role: string) => {
   if (role === 'admin') return;
@@ -67,10 +68,8 @@ const getMatchForModify = async (matchId: number, userId: number, role: string) 
 
   if (match.created_by === userId) return match;
 
-  if (role === 'coach') {
-    const group = await db('groups').where({ id: match.group_id, coach_id: userId }).first();
-    if (group) return match;
-  }
+  // Тренер (реальный или помощник) может редактировать/удалять любой матч своей группы
+  if (await hasCoachAccess(match.group_id, userId, role)) return match;
 
   throw new AppError('Access denied', 403);
 };

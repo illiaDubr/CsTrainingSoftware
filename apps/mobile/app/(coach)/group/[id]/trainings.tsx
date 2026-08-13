@@ -6,10 +6,12 @@ import { TrainingCard } from '../../../../src/components/cards/TrainingCard';
 import { Training } from '../../../../src/types';
 import { showAlert, showConfirm } from '../../../../src/utils/alert';
 import { FAB } from '../../../../src/components/ui/FAB';
+import { useGroupPermission } from '../../../../src/hooks/useGroupPermission';
 
-export default function CoachGroupTrainingsScreen() {
+export default function GroupTrainingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { canManage, pathPrefix } = useGroupPermission(Number(id));
 
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,14 +76,16 @@ export default function CoachGroupTrainingsScreen() {
           renderItem={({ item }) => (
             <TrainingCard
               training={item}
-              onEdit={() => router.push(`/(coach)/edit-training?groupId=${id}&trainingId=${item.id}`)}
-              onDelete={() => handleDelete(item.id)}
+              onEdit={canManage ? () => router.push(`${pathPrefix}/edit-training?groupId=${id}&trainingId=${item.id}` as any) : undefined}
+              onDelete={canManage ? () => handleDelete(item.id) : undefined}
             />
           )}
         />
       )}
 
-      <FAB onPress={() => router.push(`/(coach)/create-training?groupId=${id}`)} />
+      {canManage ? (
+        <FAB onPress={() => router.push(`${pathPrefix}/create-training?groupId=${id}` as any)} />
+      ) : null}
     </View>
   );
 }
@@ -94,10 +98,4 @@ const styles = StyleSheet.create({
   list: { paddingBottom: 100 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: '#94A3B8', fontSize: 15 },
-  fab: {
-    position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#f59e0b', justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#f59e0b', shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6,
-  },
-  fabText: { color: '#000', fontSize: 28, fontWeight: '300', marginTop: -2 },
 });

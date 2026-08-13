@@ -4,6 +4,16 @@ export interface Group {
   description?: string;
   coach_id: number;
   created_at: string;
+  is_assistant_coach?: boolean; // для игрока: назначен ли он помощником тренера в этой группе
+  members?: GroupMember[];
+}
+
+export interface GroupMember {
+  id: number;
+  username: string;
+  email: string;
+  avatar_url?: string;
+  is_assistant_coach: boolean;
 }
 
 export type TaskPriority = 'low' | 'medium' | 'high';

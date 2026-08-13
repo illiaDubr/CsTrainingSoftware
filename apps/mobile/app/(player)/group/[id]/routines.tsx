@@ -4,10 +4,14 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { routinesService } from '../../../../src/services/routinesService';
 import { RoutineCardPlayer } from '../../../../src/components/cards/RoutineCardPlayer';
 import { Routine } from '../../../../src/types';
+import { FAB } from '../../../../src/components/ui/FAB';
+import { showAlert, showConfirm } from '../../../../src/utils/alert';
+import { useGroupPermission } from '../../../../src/hooks/useGroupPermission';
 
 export default function PlayerGroupRoutinesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { canManage } = useGroupPermission(Number(id));
 
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +37,17 @@ export default function PlayerGroupRoutinesScreen() {
   const handleRefresh = () => {
     setRefreshing(true);
     loadData();
+  };
+
+  const handleDelete = (routineId: number) => {
+    showConfirm('Удалить рутину?', undefined, async () => {
+      try {
+        await routinesService.deactivateRoutine(routineId);
+        loadData();
+      } catch {
+        showAlert('Ошибка', 'Не удалось удалить рутину');
+      }
+    });
   };
 
   if (loading) {
@@ -66,10 +81,16 @@ export default function PlayerGroupRoutinesScreen() {
                 await routinesService.updateProgress(routineId, status, note, timeSpent);
                 await loadData();
               }}
+              onEdit={canManage ? () => router.push(`/(player)/edit-routine?groupId=${id}&routineId=${item.id}` as any) : undefined}
+              onDelete={canManage ? () => handleDelete(item.id) : undefined}
             />
           )}
         />
       )}
+
+      {canManage ? (
+        <FAB onPress={() => router.push(`/(player)/create-routine?groupId=${id}` as any)} />
+      ) : null}
     </View>
   );
 }
@@ -79,7 +100,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B0D14' },
   back: { color: '#f59e0b', fontSize: 15, marginBottom: 12 },
   title: { color: '#F8FAFC', fontSize: 24, fontWeight: '800', marginBottom: 20, letterSpacing: -0.5 },
-  list: { paddingBottom: 40 },
+  list: { paddingBottom: 100 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: '#94A3B8', fontSize: 15 },
 });

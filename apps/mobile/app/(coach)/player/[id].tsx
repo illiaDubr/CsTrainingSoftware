@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { useAppSelector } from '../../../src/hooks/useAppDispatch';
 import { statsService } from '../../../src/services/statsService';
 import { routinesService } from '../../../src/services/routinesService';
 import { ActivityHeatmap } from '../../../src/components/ui/ActivityHeatmap';
@@ -29,6 +30,8 @@ const STATUS_COLORS: Record<string, string> = {
 export default function CoachPlayerProfileScreen() {
   const { id, username, email } = useLocalSearchParams<{ id: string; username: string; email: string }>();
   const router = useRouter();
+  const user = useAppSelector((s) => s.auth.user);
+  const pathPrefix = user?.role === 'coach' || user?.role === 'admin' ? '/(coach)' : '/(player)';
 
   const [activity, setActivity] = useState<{ date: string; count: number }[]>([]);
   const [total, setTotal] = useState(0);
@@ -80,7 +83,7 @@ export default function CoachPlayerProfileScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(coach)/dashboard')}>
+      <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace(`${pathPrefix}/dashboard` as any)}>
         <Text style={styles.back}>‹ Назад</Text>
       </TouchableOpacity>
 
