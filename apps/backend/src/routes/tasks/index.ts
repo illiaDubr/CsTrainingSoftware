@@ -18,14 +18,14 @@ router.use(authenticate);
 router.get('/', getTasksController);
 
 router.get('/:id', getTaskByIdController);
-// Создать задачу — только coach
-router.post('/', authorize(UserRole.COACH), createTaskController);
+// Создать задачу — тренер или помощник тренера этой группы (проверка в сервисе)
+router.post('/', createTaskController);
 
-// Обновить задачу — только coach
-router.patch('/:id', authorize(UserRole.COACH), updateTaskController);
+// Обновить задачу — тренер или помощник тренера этой группы (проверка в сервисе)
+router.patch('/:id', updateTaskController);
 
-// Удалить задачу — только coach
-router.delete('/:id', authorize(UserRole.COACH), deleteTaskController);
+// Удалить задачу — тренер или помощник тренера этой группы (проверка в сервисе)
+router.delete('/:id', deleteTaskController);
 
 // Обновить прогресс — только player
 router.patch('/:id/progress', authorize(UserRole.PLAYER), updateProgressController);

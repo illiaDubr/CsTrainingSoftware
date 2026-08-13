@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity
 import { showAlert, showConfirm } from '../../../src/utils/alert';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { tasksService } from '../../../src/services/tasksService';
+import { useGroupPermission } from '../../../src/hooks/useGroupPermission';
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Не начато',
@@ -25,12 +26,13 @@ interface PlayerProgress {
   note?: string;
 }
 
-export default function CoachTaskDetailScreen() {
+export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
   const [task, setTask] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { canManage, pathPrefix } = useGroupPermission(task?.group_id);
 
   const loadTask = async () => {
     try {
@@ -115,13 +117,17 @@ export default function CoachTaskDetailScreen() {
         ))
       )}
 
-      <TouchableOpacity style={styles.editBtn} onPress={() => router.push(`/(coach)/edit-task?taskId=${id}`)}>
-        <Text style={styles.editBtnText}>Редактировать задачу</Text>
-      </TouchableOpacity>
+      {canManage ? (
+        <>
+          <TouchableOpacity style={styles.editBtn} onPress={() => router.push(`${pathPrefix}/edit-task?taskId=${id}` as any)}>
+            <Text style={styles.editBtnText}>Редактировать задачу</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-        <Text style={styles.deleteBtnText}>Удалить задачу</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+            <Text style={styles.deleteBtnText}>Удалить задачу</Text>
+          </TouchableOpacity>
+        </>
+      ) : null}
     </ScrollView>
   );
 }

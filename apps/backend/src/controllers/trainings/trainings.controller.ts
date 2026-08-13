@@ -17,7 +17,7 @@ export const createTrainingController = async (req: AuthRequest, res: Response, 
     if (!group_id || !title || !scheduled_at) {
       return res.status(400).json({ success: false, message: 'group_id, title and scheduled_at are required' });
     }
-    const training = await trainingsService.createTraining(req.user!.userId, { group_id, title, description, scheduled_at, duration_minutes });
+    const training = await trainingsService.createTraining(req.user!.userId, req.user!.role, { group_id, title, description, scheduled_at, duration_minutes });
     res.status(201).json({ success: true, data: training });
   } catch (err) { next(err); }
 };
@@ -25,14 +25,14 @@ export const createTrainingController = async (req: AuthRequest, res: Response, 
 export const updateTrainingController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { title, description, scheduled_at, duration_minutes } = req.body;
-    const training = await trainingsService.updateTraining(Number(req.params.id), req.user!.userId, { title, description, scheduled_at, duration_minutes });
+    const training = await trainingsService.updateTraining(Number(req.params.id), req.user!.userId, req.user!.role, { title, description, scheduled_at, duration_minutes });
     res.json({ success: true, data: training });
   } catch (err) { next(err); }
 };
 
 export const deleteTrainingController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await trainingsService.deleteTraining(Number(req.params.id), req.user!.userId);
+    const result = await trainingsService.deleteTraining(Number(req.params.id), req.user!.userId, req.user!.role);
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };

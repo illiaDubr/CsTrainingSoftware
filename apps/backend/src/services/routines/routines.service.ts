@@ -1,5 +1,6 @@
 import { db } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
+import { assertCoachAccess, assertSharesGroupWithPlayer } from '../groups/groupAccess';
 
 const todayDate = () => {
   const d = new Date();
@@ -105,15 +106,9 @@ export const getPersonalRoutines = async (playerId: number) => {
   return shapePlayerRoutines(routines, progress, today);
 };
 
-export const getPersonalRoutinesForCoach = async (coachId: number, playerId: number) => {
-  // Тренер может смотреть только рутину игроков из своих групп
-  const shared = await db('group_members')
-    .join('groups', 'group_members.group_id', 'groups.id')
-    .where('groups.coach_id', coachId)
-    .andWhere('group_members.player_id', playerId)
-    .first();
-
-  if (!shared) throw new AppError('Player is not in your groups', 403);
+export const getPersonalRoutinesForCoach = async (coachId: number, role: string, playerId: number) => {
+  // Тренер (реальный или помощник) может смотреть только рутину игроков из своих групп
+  await assertSharesGroupWithPlayer(coachId, role, playerId);
 
   return getPersonalRoutines(playerId);
 };
@@ -191,19 +186,20 @@ export const getRoutinesByGroup = async (groupId: number, userId: number, role: 
   return routines;
 };
 
-export const createRoutine = async (coachId: number, dto: {
+export const createRoutine = async (userId: number, role: string, dto: {
   group_id: number;
   title: string;
   description?: string;
   priority?: string;
 }) => {
-  const group = await db('groups').where({ id: dto.group_id, coach_id: coachId }).first();
-  if (!group) throw new AppError('Group not found or access denied', 404);
+  await assertCoachAccess(dto.group_id, userId, role);
+  const group = await db('groups').where({ id: dto.group_id }).first();
+  if (!group) throw new AppError('Group not found', 404);
 
   const [routine] = await db('routines')
     .insert({
       group_id: dto.group_id,
-      coach_id: coachId,
+      coach_id: group.coach_id,
       title: dto.title,
       description: dto.description,
       priority: dto.priority || 'medium',
@@ -213,19 +209,21 @@ export const createRoutine = async (coachId: number, dto: {
   return routine;
 };
 
-export const updateRoutine = async (id: number, userId: number, dto: {
+export const updateRoutine = async (id: number, userId: number, role: string, dto: {
   title?: string;
   description?: string;
   priority?: string;
 }) => {
-  // Владелец — тренер (групповая рутина) или игрок (индивидуальная)
-  const routine = await db('routines')
-    .where({ id })
-    .andWhere((qb) => {
-      qb.where({ coach_id: userId }).orWhere({ player_id: userId });
-    })
-    .first();
-  if (!routine) throw new AppError('Routine not found or access denied', 404);
+  const routine = await db('routines').where({ id }).first();
+  if (!routine) throw new AppError('Routine not found', 404);
+
+  if (routine.group_id) {
+    await assertCoachAccess(routine.group_id, userId, role);
+  } else if (routine.player_id === userId) {
+    // индивидуальная рутина — доступна только её владельцу
+  } else {
+    throw new AppError('Routine not found or access denied', 404);
+  }
 
   const updates: Record<string, any> = {};
   if (dto.title !== undefined) updates.title = dto.title;
@@ -240,22 +238,24 @@ export const updateRoutine = async (id: number, userId: number, dto: {
   return updated;
 };
 
-export const deactivateRoutine = async (id: number, userId: number) => {
-  // Владелец — тренер (групповая рутина) или игрок (индивидуальная)
-  const routine = await db('routines')
-    .where({ id })
-    .andWhere((qb) => {
-      qb.where({ coach_id: userId }).orWhere({ player_id: userId });
-    })
-    .first();
-  if (!routine) throw new AppError('Routine not found or access denied', 404);
+export const deactivateRoutine = async (id: number, userId: number, role: string) => {
+  const routine = await db('routines').where({ id }).first();
+  if (!routine) throw new AppError('Routine not found', 404);
+
+  if (routine.group_id) {
+    await assertCoachAccess(routine.group_id, userId, role);
+  } else if (routine.player_id === userId) {
+    // индивидуальная рутина — доступна только её владельцу
+  } else {
+    throw new AppError('Routine not found or access denied', 404);
+  }
 
   await db('routines').where({ id }).update({ is_active: false, updated_at: db.fn.now() });
   return { message: 'Routine deactivated' };
 };
 
-// Тренер проставляет статус игроку за конкретный (в т.ч. прошлый) день
-export const overrideRoutineProgress = async (coachId: number, routineId: number, dto: {
+// Тренер (реальный или помощник) проставляет статус игроку за конкретный (в т.ч. прошлый) день
+export const overrideRoutineProgress = async (userId: number, role: string, routineId: number, dto: {
   player_id: number;
   date: string; // YYYY-MM-DD
   status: string;
@@ -265,24 +265,18 @@ export const overrideRoutineProgress = async (coachId: number, routineId: number
   if (!routine) throw new AppError('Routine not found', 404);
 
   if (routine.group_id) {
-    // Групповая рутина: тренер владеет группой, игрок — участник
-    const group = await db('groups').where({ id: routine.group_id, coach_id: coachId }).first();
-    if (!group) throw new AppError('Access denied', 403);
+    // Групповая рутина: тренер/помощник владеет группой, игрок — участник
+    await assertCoachAccess(routine.group_id, userId, role);
 
     const member = await db('group_members')
       .where({ group_id: routine.group_id, player_id: dto.player_id })
       .first();
     if (!member) throw new AppError('Player is not in this group', 403);
   } else if (routine.player_id) {
-    // Индивидуальная рутина: она принадлежит этому игроку, а игрок — в группе тренера
+    // Индивидуальная рутина: она принадлежит этому игроку, а игрок — в группе тренера/помощника
     if (routine.player_id !== dto.player_id) throw new AppError('Access denied', 403);
 
-    const shared = await db('group_members')
-      .join('groups', 'group_members.group_id', 'groups.id')
-      .where('groups.coach_id', coachId)
-      .andWhere('group_members.player_id', dto.player_id)
-      .first();
-    if (!shared) throw new AppError('Player is not in your groups', 403);
+    await assertSharesGroupWithPlayer(userId, role, dto.player_id);
   } else {
     throw new AppError('Access denied', 403);
   }

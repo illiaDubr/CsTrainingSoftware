@@ -22,7 +22,7 @@ export const createTaskController = async (req: AuthRequest, res: Response, next
   try {
     const { group_id, title, description, priority, due_date } = req.body;
     if (!group_id || !title) return res.status(400).json({ success: false, message: 'group_id and title are required' });
-    const task = await tasksService.createTask(req.user!.userId, { group_id, title, description, priority, due_date });
+    const task = await tasksService.createTask(req.user!.userId, req.user!.role, { group_id, title, description, priority, due_date });
     res.status(201).json({ success: true, data: task });
   } catch (err) { next(err); }
 };
@@ -30,14 +30,14 @@ export const createTaskController = async (req: AuthRequest, res: Response, next
 export const updateTaskController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { title, description, priority, due_date } = req.body;
-    const task = await tasksService.updateTask(Number(req.params.id), req.user!.userId, { title, description, priority, due_date });
+    const task = await tasksService.updateTask(Number(req.params.id), req.user!.userId, req.user!.role, { title, description, priority, due_date });
     res.json({ success: true, data: task });
   } catch (err) { next(err); }
 };
 
 export const deleteTaskController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await tasksService.deleteTask(Number(req.params.id), req.user!.userId);
+    const result = await tasksService.deleteTask(Number(req.params.id), req.user!.userId, req.user!.role);
     res.json({ success: true, data: result });
   } catch (err) { next(err); }
 };

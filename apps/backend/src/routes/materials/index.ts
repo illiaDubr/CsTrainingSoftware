@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { authenticate, authorize } from '../../middlewares/auth';
-import { UserRole } from '../../models/user.model';
+import { authenticate } from '../../middlewares/auth';
 import {
   getMaterialsController,
   createMaterialController,
@@ -9,12 +8,10 @@ import {
 } from '../../controllers/materials/materials.controller';
 
 const router = Router();
-
 router.use(authenticate);
-
 router.get('/', getMaterialsController);
-router.post('/', authorize(UserRole.COACH), createMaterialController);
-router.patch('/:id', authorize(UserRole.COACH), updateMaterialController);
-router.delete('/:id', authorize(UserRole.COACH), deleteMaterialController);
-
+// Создание/редактирование/удаление — тренер или помощник тренера этой группы (проверка в сервисе)
+router.post('/', createMaterialController);
+router.patch('/:id', updateMaterialController);
+router.delete('/:id', deleteMaterialController);
 export default router;

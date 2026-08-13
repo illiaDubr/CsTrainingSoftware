@@ -7,10 +7,12 @@ import { materialsService } from '../../../../src/services/materialsService';
 import { routinesService } from '../../../../src/services/routinesService';
 import { matchesService } from '../../../../src/services/matchesService';
 import { Routine } from '../../../../src/types';
+import { useGroupPermission } from '../../../../src/hooks/useGroupPermission';
 
 export default function PlayerGroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { isAssistant } = useGroupPermission(Number(id));
 
   const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, matches: 0 });
   const [routinesDone, setRoutinesDone] = useState(0);
@@ -74,6 +76,9 @@ export default function PlayerGroupScreen() {
     { key: 'tasks', label: 'Задачи', icon: '📋', count: counts.tasks, hint: 'Твои задачи', route: `/(player)/group/${id}/tasks` },
     { key: 'trainings', label: 'Тренировки', icon: '🎯', count: counts.trainings, hint: 'Расписание', route: `/(player)/group/${id}/trainings` },
     { key: 'materials', label: 'Материалы', icon: '📚', count: counts.materials, hint: 'Обучение', route: `/(player)/group/${id}/materials` },
+    ...(isAssistant
+      ? [{ key: 'members', label: 'Игроки', icon: '👥', count: 0, hint: 'Состав группы (помощник тренера)', route: `/(player)/group/${id}/members` }]
+      : []),
   ];
 
   return (

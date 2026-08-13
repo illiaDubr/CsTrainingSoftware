@@ -5,10 +5,12 @@ import { tasksService } from '../../../../src/services/tasksService';
 import { TaskCard } from '../../../../src/components/cards/TaskCard';
 import { Task } from '../../../../src/types';
 import { FAB } from '../../../../src/components/ui/FAB';
+import { useGroupPermission } from '../../../../src/hooks/useGroupPermission';
 
-export default function CoachGroupTasksScreen() {
+export default function GroupTasksScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { canManage, pathPrefix } = useGroupPermission(Number(id));
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,12 +62,14 @@ export default function CoachGroupTasksScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
           renderItem={({ item }) => (
-            <TaskCard task={item} onPress={() => router.push(`/(coach)/task/${item.id}`)} />
+            <TaskCard task={item} onPress={() => router.push(`${pathPrefix}/task/${item.id}` as any)} />
           )}
         />
       )}
 
-      <FAB onPress={() => router.push(`/(coach)/create-task?groupId=${id}`)} />
+      {canManage ? (
+        <FAB onPress={() => router.push(`${pathPrefix}/create-task?groupId=${id}` as any)} />
+      ) : null}
     </View>
   );
 }
@@ -78,10 +82,4 @@ const styles = StyleSheet.create({
   list: { paddingBottom: 100 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: '#94A3B8', fontSize: 15 },
-  fab: {
-    position: 'absolute', bottom: 30, right: 20, width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#f59e0b', justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#f59e0b', shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6,
-  },
-  fabText: { color: '#000', fontSize: 28, fontWeight: '300', marginTop: -2 },
 });

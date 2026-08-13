@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, ScrollView } from 'react-native';
-import { showAlert } from '../../../src/utils/alert';
+import { showAlert, showConfirm } from '../../../src/utils/alert';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { tasksService } from '../../../src/services/tasksService';
 import { Task, TaskStatus } from '../../../src/types';
+import { useGroupPermission } from '../../../src/hooks/useGroupPermission';
 
 const STATUSES: { value: TaskStatus; label: string; color: string }[] = [
   { value: 'pending', label: 'Не начато', color: '#748099' },
@@ -25,6 +26,7 @@ export default function TaskDetailScreen() {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { canManage } = useGroupPermission(task?.group_id);
 
   const loadTask = async () => {
     try {
@@ -67,6 +69,17 @@ export default function TaskDetailScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDelete = () => {
+    showConfirm('Удалить задачу?', 'Это действие нельзя отменить', async () => {
+      try {
+        await tasksService.deleteTask(Number(id));
+        router.back();
+      } catch {
+        showAlert('Ошибка', 'Не удалось удалить задачу');
+      }
+    });
   };
 
   if (loading) {
@@ -149,6 +162,18 @@ export default function TaskDetailScreen() {
           : <Text style={styles.saveBtnText}>Сохранить заметку</Text>
         }
       </TouchableOpacity>
+
+      {canManage ? (
+        <>
+          <TouchableOpacity style={styles.editBtn} onPress={() => router.push(`/(player)/edit-task?taskId=${id}` as any)}>
+            <Text style={styles.editBtnText}>Редактировать задачу</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+            <Text style={styles.deleteBtnText}>Удалить задачу</Text>
+          </TouchableOpacity>
+        </>
+      ) : null}
     </ScrollView>
   );
 }
@@ -194,4 +219,14 @@ const styles = StyleSheet.create({
   },
   saveBtnText: { color: '#000', fontWeight: '700', fontSize: 15 },
   errorText: { color: '#94A3B8', fontSize: 15 },
+  editBtn: {
+    borderWidth: 1, borderColor: '#f59e0b', borderRadius: 10,
+    paddingVertical: 14, alignItems: 'center', marginTop: 30,
+  },
+  editBtnText: { color: '#f59e0b', fontWeight: '700', fontSize: 15 },
+  deleteBtn: {
+    borderWidth: 1, borderColor: '#ef4444', borderRadius: 10,
+    paddingVertical: 14, alignItems: 'center', marginTop: 12,
+  },
+  deleteBtnText: { color: '#ef4444', fontWeight: '700', fontSize: 15 },
 });
