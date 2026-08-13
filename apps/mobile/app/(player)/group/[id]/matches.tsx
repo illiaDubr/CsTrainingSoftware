@@ -51,7 +51,7 @@ export default function PlayerGroupMatchesScreen() {
   const canModify = (m: Match) => m.created_by === user?.id;
 
   const handleDelete = (match: Match) => {
-    showConfirm('Удалить матч?', `vs ${match.opponent}`, async () => {
+    showConfirm('Удалить матч?', match.opponent, async () => {
       try {
         await matchesService.deleteMatch(match.id);
         loadData();
@@ -91,7 +91,7 @@ export default function PlayerGroupMatchesScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.back}>‹ Назад</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>📅 Матчи</Text>
+        <Text style={styles.title}>📅 Календарь матчей</Text>
         <Text style={styles.subtitle}>ESEA и другие игры команды — добавить может любой участник</Text>
 
         <MatchesCalendar matches={matches} selectedDate={selectedDate} onSelectDate={setSelectedDate} />

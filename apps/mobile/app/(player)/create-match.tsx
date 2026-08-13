@@ -26,7 +26,7 @@ export default function CreateMatchScreen() {
 
   const handleCreate = async () => {
     if (!opponent.trim() || !dateStr.trim() || !timeStr.trim()) {
-      showAlert('Ошибка', 'Заполни соперника, дату и время');
+      showAlert('Ошибка', 'Заполни название, дату и время');
       return;
     }
 
@@ -94,7 +94,7 @@ export default function CreateMatchScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Соперник (название команды)"
+          placeholder="Соперник или название турнира"
           placeholderTextColor="#5B677D"
           value={opponent}
           onChangeText={setOpponent}

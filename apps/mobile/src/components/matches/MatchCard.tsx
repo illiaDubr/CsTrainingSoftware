@@ -31,7 +31,7 @@ export function MatchCard({ match, onPress, onEdit, onDelete, showAuthor }: Prop
       </View>
       <View style={styles.content}>
         <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>vs {match.opponent}</Text>
+          <Text style={styles.title} numberOfLines={1}>{match.opponent}</Text>
         </View>
         <View style={styles.meta}>
           <View style={[styles.classBadge, { borderColor: meta.color }]}>
