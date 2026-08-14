@@ -1,4 +1,13 @@
-import { NadeCategory, NadeSide, NadeType } from '../../types';
+import { NadeCategory, NadeImageType, NadeSide, NadeType } from '../../types';
+
+export const IMAGE_TYPE_META: Record<NadeImageType, { label: string; icon: string }> = {
+  position: { label: 'Позиция', icon: '🧍' },
+  aim: { label: 'Прицел', icon: '🎯' },
+  result: { label: 'Результат', icon: '💨' },
+  other: { label: 'Скрин', icon: '📷' },
+};
+
+export const IMAGE_TYPE_ORDER: NadeImageType[] = ['position', 'aim', 'result', 'other'];
 
 export const NADE_TYPE_META: Record<NadeType, { label: string; icon: string; color: string }> = {
   smoke: { label: 'Смоук', icon: '💨', color: '#94A3B8' },

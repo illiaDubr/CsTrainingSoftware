@@ -8,10 +8,17 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { nadesService, nadeImageUrl } from '../../src/services/nadesService';
 import { showAlert, showConfirm } from '../../src/utils/alert';
 import { GradientButton } from '../../src/components/ui/GradientButton';
-import { CATEGORY_META, CATEGORY_ORDER, NADE_TYPE_META, NADE_TYPE_ORDER, SIDE_META } from '../../src/components/nades/nadeMeta';
-import { Nade, NadeCategory, NadeImage, NadeSide, NadeType } from '../../src/types';
+import { MapCanvas } from '../../src/components/nades/MapCanvas';
+import {
+  CATEGORY_META, CATEGORY_ORDER, IMAGE_TYPE_META, IMAGE_TYPE_ORDER,
+  NADE_TYPE_META, NADE_TYPE_ORDER, SIDE_META,
+} from '../../src/components/nades/nadeMeta';
+import { Nade, NadeCategory, NadeImage, NadeImageType, NadeSide, NadeType } from '../../src/types';
 
 const MAX_IMAGES = 6;
+const DEFAULT_TYPE_ORDER: NadeImageType[] = ['position', 'aim', 'result', 'other', 'other', 'other'];
+
+interface NewImageItem { uri: string; type: NadeImageType }
 
 export default function EditNadeScreen() {
   const router = useRouter();
@@ -20,14 +27,20 @@ export default function EditNadeScreen() {
   const [mapName, setMapName] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [side, setSide] = useState<NadeSide>('T');
   const [category, setCategory] = useState<NadeCategory>('base');
   const [nadeType, setNadeType] = useState<NadeType>('smoke');
   const [existingImages, setExistingImages] = useState<NadeImage[]>([]);
-  const [newImages, setNewImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<NewImageItem[]>([]);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notFound, setNotFound] = useState(false);
+
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+  const [bgLoading, setBgLoading] = useState(false);
+  const [uploadingBg, setUploadingBg] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -41,10 +54,12 @@ export default function EditNadeScreen() {
         setMapName(nade.map_name);
         setTitle(nade.title);
         setDescription(nade.description ?? '');
+        setVideoUrl(nade.video_url ?? '');
         setSide(nade.side);
         setCategory(nade.category);
         setNadeType(nade.nade_type);
         setExistingImages(nade.images);
+        if (nade.pos_x != null && nade.pos_y != null) setPos({ x: nade.pos_x, y: nade.pos_y });
       } catch {
         setNotFound(true);
       } finally {
@@ -53,6 +68,21 @@ export default function EditNadeScreen() {
     };
     load();
   }, [nadeId, map]);
+
+  useEffect(() => {
+    const trimmed = mapName.trim();
+    if (!trimmed || !groupId) {
+      setBackgroundUrl(null);
+      return;
+    }
+    let cancelled = false;
+    setBgLoading(true);
+    nadesService.getBackground(Number(groupId), trimmed)
+      .then((bg) => { if (!cancelled) setBackgroundUrl(bg?.image_url ?? null); })
+      .catch(() => { if (!cancelled) setBackgroundUrl(null); })
+      .finally(() => { if (!cancelled) setBgLoading(false); });
+    return () => { cancelled = true; };
+  }, [mapName, groupId]);
 
   const totalImages = existingImages.length + newImages.length;
 
@@ -64,9 +94,23 @@ export default function EditNadeScreen() {
       quality: 0.8,
     });
     if (!result.canceled) {
-      const uris = result.assets.map(a => a.uri);
-      setNewImages(prev => [...prev, ...uris].slice(0, MAX_IMAGES - existingImages.length));
+      setNewImages(prev => {
+        const added = result.assets.map((a, i) => ({
+          uri: a.uri,
+          type: DEFAULT_TYPE_ORDER[Math.min(existingImages.length + prev.length + i, DEFAULT_TYPE_ORDER.length - 1)],
+        }));
+        return [...prev, ...added].slice(0, MAX_IMAGES - existingImages.length);
+      });
     }
+  };
+
+  const cycleNewImageType = (index: number) => {
+    setNewImages(prev => prev.map((img, i) => {
+      if (i !== index) return img;
+      const currentIdx = IMAGE_TYPE_ORDER.indexOf(img.type);
+      const next = IMAGE_TYPE_ORDER[(currentIdx + 1) % IMAGE_TYPE_ORDER.length];
+      return { ...img, type: next };
+    }));
   };
 
   const removeExistingImage = (image: NadeImage) => {
@@ -78,6 +122,24 @@ export default function EditNadeScreen() {
         showAlert('Ошибка', 'Не удалось удалить скриншот');
       }
     });
+  };
+
+  const handleUploadBackground = async () => {
+    if (!mapName.trim()) {
+      showAlert('Сначала укажи карту', 'Введи название карты выше');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 });
+    if (result.canceled || !result.assets[0]) return;
+    setUploadingBg(true);
+    try {
+      const bg = await nadesService.setBackground(Number(groupId), mapName.trim(), result.assets[0].uri);
+      setBackgroundUrl(bg.image_url);
+    } catch {
+      showAlert('Ошибка', 'Не удалось загрузить фон карты');
+    } finally {
+      setUploadingBg(false);
+    }
   };
 
   const handleSave = async () => {
@@ -99,6 +161,9 @@ export default function EditNadeScreen() {
         nade_type: nadeType,
         title: title.trim(),
         description: description.trim() || undefined,
+        video_url: videoUrl.trim() || null,
+        pos_x: pos ? pos.x : null,
+        pos_y: pos ? pos.y : null,
       });
       if (newImages.length > 0) {
         await nadesService.addImages(Number(nadeId), newImages);
@@ -144,7 +209,7 @@ export default function EditNadeScreen() {
           placeholder="Карта"
           placeholderTextColor="#5B677D"
           value={mapName}
-          onChangeText={setMapName}
+          onChangeText={(v) => { setMapName(v); setPos(null); }}
           editable={!saving}
         />
 
@@ -165,6 +230,17 @@ export default function EditNadeScreen() {
           onChangeText={setDescription}
           multiline
           numberOfLines={3}
+          editable={!saving}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Ссылка на видео-гайд — необязательно"
+          placeholderTextColor="#5B677D"
+          value={videoUrl}
+          onChangeText={setVideoUrl}
+          autoCapitalize="none"
+          keyboardType="url"
           editable={!saving}
         />
 
@@ -214,6 +290,7 @@ export default function EditNadeScreen() {
         ))}
 
         <Text style={styles.label}>Скриншоты ({totalImages}/{MAX_IMAGES})</Text>
+        <Text style={styles.imagesHint}>Нажми на бейдж нового фото, чтобы поменять тип</Text>
         <View style={styles.imagesRow}>
           {existingImages.map((img) => (
             <View key={img.id} style={styles.imageWrap}>
@@ -225,17 +302,23 @@ export default function EditNadeScreen() {
               >
                 <Text style={styles.imageRemoveText}>✕</Text>
               </TouchableOpacity>
+              <View style={styles.imageTypeBadge}>
+                <Text style={styles.imageTypeBadgeText}>{IMAGE_TYPE_META[img.image_type]?.icon ?? '📷'} {IMAGE_TYPE_META[img.image_type]?.label ?? 'Скрин'}</Text>
+              </View>
             </View>
           ))}
-          {newImages.map((uri, i) => (
+          {newImages.map((img, i) => (
             <View key={`new-${i}`} style={[styles.imageWrap, styles.imageWrapNew]}>
-              <Image source={{ uri }} style={styles.imagePreview} />
+              <Image source={{ uri: img.uri }} style={styles.imagePreview} />
               <TouchableOpacity
                 style={styles.imageRemove}
                 onPress={() => setNewImages(prev => prev.filter((_, j) => j !== i))}
                 disabled={saving}
               >
                 <Text style={styles.imageRemoveText}>✕</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.imageTypeBadge} onPress={() => cycleNewImageType(i)} disabled={saving}>
+                <Text style={styles.imageTypeBadgeText}>{IMAGE_TYPE_META[img.type].icon} {IMAGE_TYPE_META[img.type].label}</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -245,6 +328,30 @@ export default function EditNadeScreen() {
               <Text style={styles.addImageText}>Добавить</Text>
             </TouchableOpacity>
           ) : null}
+        </View>
+
+        <Text style={styles.label}>Точка на мини-карте (необязательно)</Text>
+        <MapCanvas
+          backgroundUrl={backgroundUrl}
+          loadingBackground={bgLoading}
+          pickable={!!backgroundUrl}
+          pendingPos={pos}
+          onPick={setPos}
+          emptyHint={mapName.trim() ? 'Для этой карты ещё нет загруженного фона (радара)' : 'Сначала укажи карту выше'}
+        />
+        <View style={styles.mapActionsRow}>
+          {pos ? (
+            <TouchableOpacity onPress={() => setPos(null)} disabled={saving}>
+              <Text style={styles.mapActionText}>Сбросить точку</Text>
+            </TouchableOpacity>
+          ) : <View />}
+          <TouchableOpacity onPress={handleUploadBackground} disabled={saving || uploadingBg}>
+            {uploadingBg ? (
+              <ActivityIndicator size="small" color="#f59e0b" />
+            ) : (
+              <Text style={styles.mapActionText}>{backgroundUrl ? '🔄 Заменить фон карты' : '📷 Загрузить фон карты'}</Text>
+            )}
+          </TouchableOpacity>
         </View>
 
         <GradientButton
@@ -285,20 +392,28 @@ const styles = StyleSheet.create({
   },
   catTitle: { color: '#F8FAFC', fontSize: 14, fontWeight: '700', marginBottom: 4 },
   catHint: { color: '#748099', fontSize: 12, lineHeight: 16 },
+  imagesHint: { color: '#5B677D', fontSize: 11, marginBottom: 10 },
   imagesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
   imageWrap: { position: 'relative' },
   imageWrapNew: { opacity: 0.85 },
-  imagePreview: { width: 96, height: 60, borderRadius: 8, backgroundColor: '#10131E' },
+  imagePreview: { width: 104, height: 66, borderRadius: 8, backgroundColor: '#10131E' },
   imageRemove: {
     position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: 10,
     backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center',
   },
   imageRemoveText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  imageTypeBadge: {
+    position: 'absolute', bottom: 3, left: 3, right: 3,
+    backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 5, paddingVertical: 2, alignItems: 'center',
+  },
+  imageTypeBadgeText: { color: '#f59e0b', fontSize: 9, fontWeight: '700' },
   addImageBtn: {
-    width: 96, height: 60, borderRadius: 8, borderWidth: 1, borderStyle: 'dashed',
+    width: 104, height: 66, borderRadius: 8, borderWidth: 1, borderStyle: 'dashed',
     borderColor: '#3A4358', justifyContent: 'center', alignItems: 'center', backgroundColor: '#10131E',
   },
   addImageIcon: { fontSize: 16 },
   addImageText: { color: '#748099', fontSize: 10, marginTop: 2 },
+  mapActionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, marginBottom: 24 },
+  mapActionText: { color: '#f59e0b', fontSize: 12, fontWeight: '700' },
   button: { marginTop: 8 },
 });
