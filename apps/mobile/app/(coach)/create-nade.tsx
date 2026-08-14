@@ -27,12 +27,17 @@ export default function CreateNadeScreen() {
   const [mapName, setMapName] = useState(map ? decodeURIComponent(map) : '');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [videoMode, setVideoMode] = useState<'link' | 'file'>('link');
   const [videoUrl, setVideoUrl] = useState('');
+  const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [videoName, setVideoName] = useState('');
   const [side, setSide] = useState<NadeSide>('T');
   const [category, setCategory] = useState<NadeCategory>('base');
   const [nadeType, setNadeType] = useState<NadeType>('smoke');
   const [images, setImages] = useState<ImageItem[]>([]);
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [pickStep, setPickStep] = useState<'throw' | 'land'>('throw');
+  const [throwPos, setThrowPos] = useState<{ x: number; y: number } | null>(null);
+  const [landPos, setLandPos] = useState<{ x: number; y: number } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
@@ -48,7 +53,19 @@ export default function CreateNadeScreen() {
     let cancelled = false;
     setBgLoading(true);
     nadesService.getBackground(Number(groupId), trimmed)
-      .then((bg) => { if (!cancelled) setBackgroundUrl(bg?.image_url ?? null); })
+      .then((bg) => {
+        if (cancelled) return;
+        setBackgroundUrl((prev) => {
+          const next = bg?.image_url ?? null;
+          // Карта реально сменилась — старые точки броска относились к другому фону, сбрасываем
+          if (prev !== null && next !== prev) {
+            setThrowPos(null);
+            setLandPos(null);
+            setPickStep('throw');
+          }
+          return next;
+        });
+      })
       .catch(() => { if (!cancelled) setBackgroundUrl(null); })
       .finally(() => { if (!cancelled) setBgLoading(false); });
     return () => { cancelled = true; };
@@ -79,6 +96,23 @@ export default function CreateNadeScreen() {
       const next = IMAGE_TYPE_ORDER[(currentIdx + 1) % IMAGE_TYPE_ORDER.length];
       return { ...img, type: next };
     }));
+  };
+
+  const pickVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 0.8 });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    setVideoUri(asset.uri);
+    setVideoName(asset.fileName || asset.uri.split('/').pop() || 'video.mp4');
+  };
+
+  const handlePick = (step: 'throw' | 'land', p: { x: number; y: number }) => {
+    if (step === 'throw') {
+      setThrowPos(p);
+      if (!landPos) setPickStep('land');
+    } else {
+      setLandPos(p);
+    }
   };
 
   const handleUploadBackground = async () => {
@@ -123,9 +157,12 @@ export default function CreateNadeScreen() {
         nade_type: nadeType,
         title: title.trim(),
         description: description.trim() || undefined,
-        video_url: videoUrl.trim() || undefined,
-        pos_x: pos?.x,
-        pos_y: pos?.y,
+        video_url: videoMode === 'link' ? (videoUrl.trim() || undefined) : undefined,
+        videoUri: videoMode === 'file' ? (videoUri || undefined) : undefined,
+        throw_x: throwPos?.x,
+        throw_y: throwPos?.y,
+        land_x: landPos?.x,
+        land_y: landPos?.y,
       }, images);
       router.back();
     } catch {
@@ -149,7 +186,7 @@ export default function CreateNadeScreen() {
           placeholder="Карта (Mirage, Inferno...)"
           placeholderTextColor="#5B677D"
           value={mapName}
-          onChangeText={(v) => { setMapName(v); setPos(null); }}
+          onChangeText={setMapName}
           editable={!loading}
         />
 
@@ -173,16 +210,49 @@ export default function CreateNadeScreen() {
           editable={!loading}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Ссылка на видео-гайд (YouTube, клип...) — необязательно"
-          placeholderTextColor="#5B677D"
-          value={videoUrl}
-          onChangeText={setVideoUrl}
-          autoCapitalize="none"
-          keyboardType="url"
-          editable={!loading}
-        />
+        <Text style={styles.label}>Видео-гайд (необязательно)</Text>
+        <View style={styles.row}>
+          <TouchableOpacity
+            style={[styles.optionBtn, videoMode === 'link' && styles.optionBtnActive]}
+            onPress={() => setVideoMode('link')}
+            disabled={loading}
+          >
+            <Text style={[styles.optionText, videoMode === 'link' && styles.optionTextActive]}>🔗 Ссылка</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.optionBtn, videoMode === 'file' && styles.optionBtnActive]}
+            onPress={() => setVideoMode('file')}
+            disabled={loading}
+          >
+            <Text style={[styles.optionText, videoMode === 'file' && styles.optionTextActive]}>🎬 Загрузить файл</Text>
+          </TouchableOpacity>
+        </View>
+        {videoMode === 'link' ? (
+          <TextInput
+            style={styles.input}
+            placeholder="Ссылка на видео (YouTube, клип...)"
+            placeholderTextColor="#5B677D"
+            value={videoUrl}
+            onChangeText={setVideoUrl}
+            autoCapitalize="none"
+            keyboardType="url"
+            editable={!loading}
+          />
+        ) : (
+          <View style={styles.videoFileRow}>
+            <TouchableOpacity style={styles.videoPickBtn} onPress={pickVideo} disabled={loading}>
+              <Text style={styles.videoPickBtnText}>{videoUri ? '🔄 Заменить видео' : '📹 Выбрать видео из галереи'}</Text>
+            </TouchableOpacity>
+            {videoUri ? (
+              <View style={styles.videoChip}>
+                <Text style={styles.videoChipText} numberOfLines={1}>🎬 {videoName}</Text>
+                <TouchableOpacity onPress={() => { setVideoUri(null); setVideoName(''); }} disabled={loading}>
+                  <Text style={styles.videoChipRemove}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+        )}
 
         {/* Сторона */}
         <Text style={styles.label}>Сторона</Text>
@@ -259,22 +329,45 @@ export default function CreateNadeScreen() {
           ) : null}
         </View>
 
-        {/* Точка на мини-карте */}
-        <Text style={styles.label}>Точка на мини-карте (необязательно)</Text>
+        {/* Точки на мини-карте: откуда кидают → куда прилетает */}
+        <Text style={styles.label}>Траектория броска на мини-карте (необязательно)</Text>
+        {backgroundUrl ? (
+          <View style={styles.stepRow}>
+            <TouchableOpacity
+              style={[styles.stepBtn, pickStep === 'throw' && styles.stepBtnActive]}
+              onPress={() => setPickStep('throw')}
+              disabled={loading}
+            >
+              <Text style={[styles.stepBtnText, pickStep === 'throw' && styles.stepBtnTextActive]}>
+                🧍 Откуда кидают {throwPos ? '✓' : ''}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.stepBtn, pickStep === 'land' && styles.stepBtnActive]}
+              onPress={() => setPickStep('land')}
+              disabled={loading}
+            >
+              <Text style={[styles.stepBtnText, pickStep === 'land' && styles.stepBtnTextActive]}>
+                💨 Куда прилетает {landPos ? '✓' : ''}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
         <MapCanvas
           backgroundUrl={backgroundUrl}
           loadingBackground={bgLoading}
-          pickable={!!backgroundUrl}
-          pendingPos={pos}
-          onPick={setPos}
+          pickStep={backgroundUrl ? pickStep : null}
+          throwPos={throwPos}
+          landPos={landPos}
+          onPick={handlePick}
           emptyHint={mapName.trim() ? 'Для этой карты ещё нет загруженного фона (радара)' : 'Сначала укажи карту выше'}
         />
         <View style={styles.mapActionsRow}>
-          {pos ? (
-            <TouchableOpacity onPress={() => setPos(null)} disabled={loading}>
-              <Text style={styles.mapActionText}>Сбросить точку</Text>
+          {throwPos || landPos ? (
+            <TouchableOpacity onPress={() => { setThrowPos(null); setLandPos(null); setPickStep('throw'); }} disabled={loading}>
+              <Text style={styles.mapActionText}>Сбросить точки</Text>
             </TouchableOpacity>
-          ) : null}
+          ) : <View />}
           <TouchableOpacity onPress={handleUploadBackground} disabled={loading || uploadingBg}>
             {uploadingBg ? (
               <ActivityIndicator size="small" color="#f59e0b" />
@@ -342,5 +435,26 @@ const styles = StyleSheet.create({
   addImageText: { color: '#748099', fontSize: 10, marginTop: 2 },
   mapActionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, marginBottom: 24 },
   mapActionText: { color: '#f59e0b', fontSize: 12, fontWeight: '700' },
+  videoFileRow: { marginBottom: 14 },
+  videoPickBtn: {
+    borderWidth: 1, borderColor: '#242A40', borderRadius: 10, backgroundColor: '#151827',
+    paddingVertical: 12, alignItems: 'center',
+  },
+  videoPickBtnText: { color: '#f59e0b', fontSize: 13, fontWeight: '700' },
+  videoChip: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 1, borderColor: '#f59e0b',
+    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginTop: 8,
+  },
+  videoChipText: { color: '#F8FAFC', fontSize: 12, flex: 1, marginRight: 8 },
+  videoChipRemove: { color: '#EF4444', fontSize: 13, fontWeight: '800' },
+  stepRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  stepBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 10,
+    borderWidth: 1, borderColor: '#242A40', backgroundColor: '#151827',
+  },
+  stepBtnActive: { borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.14)' },
+  stepBtnText: { color: '#94A3B8', fontSize: 12, fontWeight: '700' },
+  stepBtnTextActive: { color: '#f59e0b' },
   button: { marginTop: 8 },
 });

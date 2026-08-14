@@ -139,8 +139,10 @@ export interface Nade {
   title: string;
   description?: string;
   video_url?: string | null;
-  pos_x?: number | null;
-  pos_y?: number | null;
+  throw_x?: number | null;
+  throw_y?: number | null;
+  land_x?: number | null;
+  land_y?: number | null;
   created_at: string;
   images: NadeImage[];
 }

@@ -72,7 +72,7 @@ export function NadeDetailModal({ visible, nade, onClose }: Props) {
             {nade.video_url ? (
               <TouchableOpacity
                 style={styles.videoBtn}
-                onPress={() => Linking.openURL(nade.video_url!)}
+                onPress={() => Linking.openURL(nadeImageUrl(nade.video_url!))}
                 activeOpacity={0.85}
               >
                 <Text style={styles.videoBtnText}>▶ Смотреть видео-гайд</Text>

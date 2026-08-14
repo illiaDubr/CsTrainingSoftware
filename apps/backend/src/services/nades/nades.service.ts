@@ -32,7 +32,7 @@ export const getNadesByMap = async (groupId: number, userId: number, role: strin
 
 export const createNade = async (groupId: number, userId: number, role: string, dto: {
   map_name: string; side: string; category: string; nade_type: string; title: string; description?: string;
-  video_url?: string; pos_x?: number; pos_y?: number;
+  video_url?: string; throw_x?: number; throw_y?: number; land_x?: number; land_y?: number;
 }, images: ImageInput[]) => {
   await assertCoachAccess(groupId, userId, role);
 
@@ -40,7 +40,8 @@ export const createNade = async (groupId: number, userId: number, role: string, 
     group_id: groupId, coach_id: userId, map_name: dto.map_name.trim(), side: dto.side, category: dto.category,
     nade_type: dto.nade_type, title: dto.title, description: dto.description || null,
     video_url: dto.video_url || null,
-    pos_x: dto.pos_x ?? null, pos_y: dto.pos_y ?? null,
+    throw_x: dto.throw_x ?? null, throw_y: dto.throw_y ?? null,
+    land_x: dto.land_x ?? null, land_y: dto.land_y ?? null,
   }).returning('*');
 
   if (images.length > 0) {
@@ -54,14 +55,18 @@ export const createNade = async (groupId: number, userId: number, role: string, 
 
 export const updateNade = async (id: number, userId: number, role: string, dto: {
   map_name?: string; side?: string; category?: string; nade_type?: string; title?: string; description?: string;
-  video_url?: string | null; pos_x?: number | null; pos_y?: number | null;
+  video_url?: string | null;
+  throw_x?: number | null; throw_y?: number | null; land_x?: number | null; land_y?: number | null;
 }) => {
   const nade = await db('nades').where({ id }).first();
   if (!nade) throw new AppError('Nade not found', 404);
   await assertCoachAccess(nade.group_id, userId, role);
 
   const updates: Record<string, any> = {};
-  for (const key of ['map_name', 'side', 'category', 'nade_type', 'title', 'description', 'video_url', 'pos_x', 'pos_y'] as const) {
+  for (const key of [
+    'map_name', 'side', 'category', 'nade_type', 'title', 'description', 'video_url',
+    'throw_x', 'throw_y', 'land_x', 'land_y',
+  ] as const) {
     if (dto[key] !== undefined) updates[key] = dto[key];
   }
   const [updated] = await db('nades').where({ id }).update({ ...updates, updated_at: db.fn.now() }).returning('*');
@@ -137,6 +142,34 @@ export const setMapBackground = async (groupId: number, userId: number, role: st
     group_id: groupId, map_name: mapName, coach_id: userId, image_url: imagePath,
   }).returning('*');
   return created;
+};
+
+export const setNadeVideo = async (id: number, userId: number, role: string, videoPath: string) => {
+  const nade = await db('nades').where({ id }).first();
+  if (!nade) throw new AppError('Nade not found', 404);
+  await assertCoachAccess(nade.group_id, userId, role);
+
+  if (nade.video_url && nade.video_url.startsWith('/uploads/')) {
+    removeFile(nade.video_url);
+  }
+  const [updated] = await db('nades').where({ id })
+    .update({ video_url: videoPath, updated_at: db.fn.now() }).returning('*');
+  const [withImages] = await attachImages([updated]);
+  return withImages;
+};
+
+export const deleteNadeVideo = async (id: number, userId: number, role: string) => {
+  const nade = await db('nades').where({ id }).first();
+  if (!nade) throw new AppError('Nade not found', 404);
+  await assertCoachAccess(nade.group_id, userId, role);
+
+  if (nade.video_url && nade.video_url.startsWith('/uploads/')) {
+    removeFile(nade.video_url);
+  }
+  const [updated] = await db('nades').where({ id })
+    .update({ video_url: null, updated_at: db.fn.now() }).returning('*');
+  const [withImages] = await attachImages([updated]);
+  return withImages;
 };
 
 export const deleteMapBackground = async (groupId: number, userId: number, role: string, mapName: string) => {
