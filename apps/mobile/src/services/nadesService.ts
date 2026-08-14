@@ -9,23 +9,27 @@ const FILES_BASE = API_URL.replace(/\/api$/, '');
 export const nadeImageUrl = (path: string) =>
   path.startsWith('http') ? path : `${FILES_BASE}${path}`;
 
-const appendFile = async (form: FormData, field: string, uri: string, i: number) => {
+const appendFile = async (form: FormData, field: string, uri: string, i: number, kind: 'image' | 'video' = 'image') => {
+  const defaultExt = kind === 'video' ? 'mp4' : 'jpg';
   if (Platform.OS === 'web') {
     const blob = await (await fetch(uri)).blob();
-    form.append(field, blob, `${field}-${Date.now()}-${i}.jpg`);
+    form.append(field, blob, `${field}-${Date.now()}-${i}.${defaultExt}`);
   } else {
-    const ext = uri.split('.').pop()?.toLowerCase() || 'jpg';
+    const ext = uri.split('.').pop()?.toLowerCase() || defaultExt;
+    const mime = kind === 'video'
+      ? `video/${ext === 'mov' ? 'quicktime' : ext === 'mkv' ? 'x-matroska' : ext === 'webm' ? 'webm' : 'mp4'}`
+      : `image/${ext === 'png' ? 'png' : 'jpeg'}`;
     form.append(field, {
       uri,
       name: `${field}-${Date.now()}-${i}.${ext}`,
-      type: `image/${ext === 'png' ? 'png' : 'jpeg'}`,
+      type: mime,
     } as any);
   }
 };
 
 const appendImages = async (form: FormData, uris: string[]) => {
   for (let i = 0; i < uris.length; i++) {
-    await appendFile(form, 'images', uris[i], i);
+    await appendFile(form, 'images', uris[i], i, 'image');
   }
 };
 
@@ -49,8 +53,11 @@ export const nadesService = {
     title: string;
     description?: string;
     video_url?: string;
-    pos_x?: number;
-    pos_y?: number;
+    videoUri?: string;
+    throw_x?: number;
+    throw_y?: number;
+    land_x?: number;
+    land_y?: number;
   }, images: { uri: string; type: NadeImageType }[]) {
     const form = new FormData();
     form.append('group_id', String(dto.group_id));
@@ -60,15 +67,21 @@ export const nadesService = {
     form.append('nade_type', dto.nade_type);
     form.append('title', dto.title);
     if (dto.description) form.append('description', dto.description);
-    if (dto.video_url) form.append('video_url', dto.video_url);
-    if (dto.pos_x !== undefined) form.append('pos_x', String(dto.pos_x));
-    if (dto.pos_y !== undefined) form.append('pos_y', String(dto.pos_y));
+    if (dto.videoUri) {
+      await appendFile(form, 'video', dto.videoUri, 0, 'video');
+    } else if (dto.video_url) {
+      form.append('video_url', dto.video_url);
+    }
+    if (dto.throw_x !== undefined) form.append('throw_x', String(dto.throw_x));
+    if (dto.throw_y !== undefined) form.append('throw_y', String(dto.throw_y));
+    if (dto.land_x !== undefined) form.append('land_x', String(dto.land_x));
+    if (dto.land_y !== undefined) form.append('land_y', String(dto.land_y));
     form.append('image_types', JSON.stringify(images.map(i => i.type)));
     await appendImages(form, images.map(i => i.uri));
 
     const { data } = await apiClient.post('/nades', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 60000,
+      timeout: 120000,
     });
     return data.data;
   },
@@ -81,10 +94,27 @@ export const nadesService = {
     title?: string;
     description?: string;
     video_url?: string | null;
-    pos_x?: number | null;
-    pos_y?: number | null;
+    throw_x?: number | null;
+    throw_y?: number | null;
+    land_x?: number | null;
+    land_y?: number | null;
   }) {
     const { data } = await apiClient.patch(`/nades/${id}`, dto);
+    return data.data;
+  },
+
+  async setVideo(id: number, videoUri: string) {
+    const form = new FormData();
+    await appendFile(form, 'video', videoUri, 0, 'video');
+    const { data } = await apiClient.post(`/nades/${id}/video`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+    });
+    return data.data;
+  },
+
+  async deleteVideo(id: number) {
+    const { data } = await apiClient.delete(`/nades/${id}/video`);
     return data.data;
   },
 

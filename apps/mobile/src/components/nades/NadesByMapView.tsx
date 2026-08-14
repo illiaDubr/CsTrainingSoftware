@@ -212,9 +212,9 @@ export function NadesByMapView({ groupId, mapName, canManage, onEdit, onDelete }
               onPinPress={setSelected}
               emptyHint={canManage ? 'Загрузи скриншот радара карты, чтобы расставлять точки бросков' : 'Тренер ещё не загрузил карту для этой раскидки'}
             />
-            {filtered.filter(n => n.pos_x == null).length > 0 ? (
+            {filtered.filter(n => n.land_x == null).length > 0 ? (
               <Text style={styles.noPosHint}>
-                {filtered.filter(n => n.pos_x == null).length} раскидок без точки на карте — видны только в списке
+                {filtered.filter(n => n.land_x == null).length} раскидок без точки на карте — видны только в списке
               </Text>
             ) : null}
             {canManage ? (

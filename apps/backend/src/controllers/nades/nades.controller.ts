@@ -7,12 +7,10 @@ const CATEGORIES = ['base', 'default', 'extra'];
 const NADE_TYPES = ['smoke', 'flash', 'molotov', 'he'];
 const IMAGE_TYPES = ['position', 'aim', 'result', 'other'];
 
-const filesToImages = (req: AuthRequest): { path: string; image_type: string }[] => {
-  const files = (req.files as Express.Multer.File[]) || [];
+const filesToImages = (files: Express.Multer.File[], rawTypes: any): { path: string; image_type: string }[] => {
   let types: string[] = [];
   try {
-    const raw = (req.body as any).image_types;
-    types = raw ? JSON.parse(raw) : [];
+    types = rawTypes ? JSON.parse(rawTypes) : [];
   } catch {
     types = [];
   }
@@ -50,7 +48,10 @@ export const getNadesController = async (req: AuthRequest, res: Response, next: 
 
 export const createNadeController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { group_id, map_name, side, category, nade_type, title, description, video_url, pos_x, pos_y } = req.body;
+    const {
+      group_id, map_name, side, category, nade_type, title, description, video_url,
+      throw_x, throw_y, land_x, land_y,
+    } = req.body;
     if (!group_id) return res.status(400).json({ success: false, message: 'group_id is required' });
     if (!map_name || !String(map_name).trim() || !title || !String(title).trim()) {
       return res.status(400).json({ success: false, message: 'map_name and title are required' });
@@ -59,14 +60,19 @@ export const createNadeController = async (req: AuthRequest, res: Response, next
     if (!CATEGORIES.includes(category)) return res.status(400).json({ success: false, message: 'invalid category' });
     if (!NADE_TYPES.includes(nade_type)) return res.status(400).json({ success: false, message: 'invalid nade_type' });
 
+    const filesObj = req.files as { [field: string]: Express.Multer.File[] } | undefined;
+    const imageFiles = filesObj?.images || [];
+    const videoFile = filesObj?.video?.[0];
+
     const nade = await nadesService.createNade(
       Number(group_id), req.user!.userId, req.user!.role,
       {
         map_name, side, category, nade_type, title, description,
-        video_url: video_url ? String(video_url).trim() : undefined,
-        pos_x: parsePos(pos_x), pos_y: parsePos(pos_y),
+        video_url: videoFile ? `/uploads/nades/${videoFile.filename}` : (video_url ? String(video_url).trim() : undefined),
+        throw_x: parsePos(throw_x), throw_y: parsePos(throw_y),
+        land_x: parsePos(land_x), land_y: parsePos(land_y),
       },
-      filesToImages(req),
+      filesToImages(imageFiles, req.body.image_types),
     );
     res.status(201).json({ success: true, data: nade });
   } catch (err) { next(err); }
@@ -74,7 +80,10 @@ export const createNadeController = async (req: AuthRequest, res: Response, next
 
 export const updateNadeController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { map_name, side, category, nade_type, title, description, video_url, pos_x, pos_y } = req.body;
+    const {
+      map_name, side, category, nade_type, title, description, video_url,
+      throw_x, throw_y, land_x, land_y,
+    } = req.body;
     if (side !== undefined && !SIDES.includes(side)) return res.status(400).json({ success: false, message: 'invalid side' });
     if (category !== undefined && !CATEGORIES.includes(category)) return res.status(400).json({ success: false, message: 'invalid category' });
     if (nade_type !== undefined && !NADE_TYPES.includes(nade_type)) return res.status(400).json({ success: false, message: 'invalid nade_type' });
@@ -83,8 +92,10 @@ export const updateNadeController = async (req: AuthRequest, res: Response, next
     const nade = await nadesService.updateNade(Number(req.params.id), req.user!.userId, req.user!.role, {
       map_name, side, category, nade_type, title, description,
       video_url: video_url !== undefined ? (video_url ? String(video_url).trim() : null) : undefined,
-      pos_x: pos_x !== undefined ? parsePos(pos_x) ?? null : undefined,
-      pos_y: pos_y !== undefined ? parsePos(pos_y) ?? null : undefined,
+      throw_x: throw_x !== undefined ? parsePos(throw_x) ?? null : undefined,
+      throw_y: throw_y !== undefined ? parsePos(throw_y) ?? null : undefined,
+      land_x: land_x !== undefined ? parsePos(land_x) ?? null : undefined,
+      land_y: land_y !== undefined ? parsePos(land_y) ?? null : undefined,
     });
     res.json({ success: true, data: nade });
   } catch (err) { next(err); }
@@ -92,9 +103,28 @@ export const updateNadeController = async (req: AuthRequest, res: Response, next
 
 export const addNadeImagesController = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const images = filesToImages(req);
+    const files = (req.files as Express.Multer.File[]) || [];
+    const images = filesToImages(files, req.body.image_types);
     if (images.length === 0) return res.status(400).json({ success: false, message: 'no images uploaded' });
     const nade = await nadesService.addNadeImages(Number(req.params.id), req.user!.userId, req.user!.role, images);
+    res.json({ success: true, data: nade });
+  } catch (err) { next(err); }
+};
+
+export const setNadeVideoController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const file = req.file as Express.Multer.File | undefined;
+    if (!file) return res.status(400).json({ success: false, message: 'video is required' });
+    const nade = await nadesService.setNadeVideo(
+      Number(req.params.id), req.user!.userId, req.user!.role, `/uploads/nades/${file.filename}`,
+    );
+    res.json({ success: true, data: nade });
+  } catch (err) { next(err); }
+};
+
+export const deleteNadeVideoController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const nade = await nadesService.deleteNadeVideo(Number(req.params.id), req.user!.userId, req.user!.role);
     res.json({ success: true, data: nade });
   } catch (err) { next(err); }
 };

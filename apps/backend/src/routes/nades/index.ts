@@ -15,6 +15,8 @@ import {
   getMapBackgroundController,
   setMapBackgroundController,
   deleteMapBackgroundController,
+  setNadeVideoController,
+  deleteNadeVideoController,
 } from '../../controllers/nades/nades.controller';
 
 const NADES_DIR = path.join(process.cwd(), 'uploads', 'nades');
@@ -57,6 +59,36 @@ const uploadBackground = multer({
   },
 });
 
+const VIDEO_MAX_SIZE = 150 * 1024 * 1024;
+const isVideoMime = (mimetype: string) => /^video\/(mp4|quicktime|webm|x-matroska|3gpp)$/.test(mimetype);
+const isImageMime = (mimetype: string) => /^image\/(jpeg|png|webp|gif)$/.test(mimetype);
+
+// Создание раскидки: до 6 скриншотов + опционально один видеофайл в том же запросе
+const uploadCreate = multer({
+  storage,
+  limits: { fileSize: VIDEO_MAX_SIZE, files: 7 },
+  fileFilter: (_req, file, cb) => {
+    if (file.fieldname === 'video') {
+      if (isVideoMime(file.mimetype)) cb(null, true);
+      else cb(new Error('Unsupported video format'));
+    } else if (isImageMime(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  },
+}).fields([{ name: 'images', maxCount: 6 }, { name: 'video', maxCount: 1 }]);
+
+// Замена видео у уже существующей раскидки
+const uploadVideo = multer({
+  storage,
+  limits: { fileSize: VIDEO_MAX_SIZE, files: 1 },
+  fileFilter: (_req, file, cb) => {
+    if (isVideoMime(file.mimetype)) cb(null, true);
+    else cb(new Error('Unsupported video format'));
+  },
+});
+
 const router = Router();
 
 router.use(authenticate);
@@ -67,10 +99,12 @@ router.get('/', getNadesController);
 router.get('/background', getMapBackgroundController);
 
 // Управление — тренер или помощник тренера этой группы (проверка в сервисе)
-router.post('/', upload.array('images', 6), createNadeController);
+router.post('/', uploadCreate, createNadeController);
 router.patch('/:id', updateNadeController);
 router.post('/:id/images', upload.array('images', 6), addNadeImagesController);
 router.delete('/images/:imageId', deleteNadeImageController);
+router.post('/:id/video', uploadVideo.single('video'), setNadeVideoController);
+router.delete('/:id/video', deleteNadeVideoController);
 router.delete('/:id', deleteNadeController);
 
 router.put('/background', uploadBackground.single('image'), setMapBackgroundController);

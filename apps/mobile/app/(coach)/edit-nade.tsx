@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Image, ActivityIndicator,
@@ -28,12 +28,15 @@ export default function EditNadeScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [side, setSide] = useState<NadeSide>('T');
   const [category, setCategory] = useState<NadeCategory>('base');
   const [nadeType, setNadeType] = useState<NadeType>('smoke');
   const [existingImages, setExistingImages] = useState<NadeImage[]>([]);
   const [newImages, setNewImages] = useState<NewImageItem[]>([]);
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [pickStep, setPickStep] = useState<'throw' | 'land'>('throw');
+  const [throwPos, setThrowPos] = useState<{ x: number; y: number } | null>(null);
+  const [landPos, setLandPos] = useState<{ x: number; y: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -59,7 +62,8 @@ export default function EditNadeScreen() {
         setCategory(nade.category);
         setNadeType(nade.nade_type);
         setExistingImages(nade.images);
-        if (nade.pos_x != null && nade.pos_y != null) setPos({ x: nade.pos_x, y: nade.pos_y });
+        if (nade.throw_x != null && nade.throw_y != null) setThrowPos({ x: nade.throw_x, y: nade.throw_y });
+        if (nade.land_x != null && nade.land_y != null) setLandPos({ x: nade.land_x, y: nade.land_y });
       } catch {
         setNotFound(true);
       } finally {
@@ -69,6 +73,7 @@ export default function EditNadeScreen() {
     load();
   }, [nadeId, map]);
 
+  const bgLoadedOnce = useRef(false);
   useEffect(() => {
     const trimmed = mapName.trim();
     if (!trimmed || !groupId) {
@@ -78,13 +83,27 @@ export default function EditNadeScreen() {
     let cancelled = false;
     setBgLoading(true);
     nadesService.getBackground(Number(groupId), trimmed)
-      .then((bg) => { if (!cancelled) setBackgroundUrl(bg?.image_url ?? null); })
+      .then((bg) => {
+        if (cancelled) return;
+        setBackgroundUrl((prev) => {
+          const next = bg?.image_url ?? null;
+          // Сбрасываем точки, только если фон реально сменился (не при первой загрузке экрана)
+          if (bgLoadedOnce.current && next !== prev) {
+            setThrowPos(null);
+            setLandPos(null);
+            setPickStep('throw');
+          }
+          bgLoadedOnce.current = true;
+          return next;
+        });
+      })
       .catch(() => { if (!cancelled) setBackgroundUrl(null); })
       .finally(() => { if (!cancelled) setBgLoading(false); });
     return () => { cancelled = true; };
   }, [mapName, groupId]);
 
   const totalImages = existingImages.length + newImages.length;
+  const isUploadedVideo = !!videoUrl && videoUrl.startsWith('/uploads/');
 
   const pickImages = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -142,6 +161,40 @@ export default function EditNadeScreen() {
     }
   };
 
+  const handlePick = (step: 'throw' | 'land', p: { x: number; y: number }) => {
+    if (step === 'throw') {
+      setThrowPos(p);
+      if (!landPos) setPickStep('land');
+    } else {
+      setLandPos(p);
+    }
+  };
+
+  const handleUploadVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 0.8 });
+    if (result.canceled || !result.assets[0]) return;
+    setUploadingVideo(true);
+    try {
+      const updated = await nadesService.setVideo(Number(nadeId), result.assets[0].uri);
+      setVideoUrl(updated.video_url ?? '');
+    } catch {
+      showAlert('Ошибка', 'Не удалось загрузить видео');
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const handleDeleteVideo = () => {
+    showConfirm('Удалить видео?', undefined, async () => {
+      try {
+        const updated = await nadesService.deleteVideo(Number(nadeId));
+        setVideoUrl(updated.video_url ?? '');
+      } catch {
+        showAlert('Ошибка', 'Не удалось удалить видео');
+      }
+    });
+  };
+
   const handleSave = async () => {
     if (!mapName.trim()) {
       showAlert('Ошибка', 'Укажи карту');
@@ -161,9 +214,11 @@ export default function EditNadeScreen() {
         nade_type: nadeType,
         title: title.trim(),
         description: description.trim() || undefined,
-        video_url: videoUrl.trim() || null,
-        pos_x: pos ? pos.x : null,
-        pos_y: pos ? pos.y : null,
+        video_url: isUploadedVideo ? undefined : (videoUrl.trim() || null),
+        throw_x: throwPos ? throwPos.x : null,
+        throw_y: throwPos ? throwPos.y : null,
+        land_x: landPos ? landPos.x : null,
+        land_y: landPos ? landPos.y : null,
       });
       if (newImages.length > 0) {
         await nadesService.addImages(Number(nadeId), newImages);
@@ -209,7 +264,7 @@ export default function EditNadeScreen() {
           placeholder="Карта"
           placeholderTextColor="#5B677D"
           value={mapName}
-          onChangeText={(v) => { setMapName(v); setPos(null); }}
+          onChangeText={setMapName}
           editable={!saving}
         />
 
@@ -233,16 +288,36 @@ export default function EditNadeScreen() {
           editable={!saving}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Ссылка на видео-гайд — необязательно"
-          placeholderTextColor="#5B677D"
-          value={videoUrl}
-          onChangeText={setVideoUrl}
-          autoCapitalize="none"
-          keyboardType="url"
-          editable={!saving}
-        />
+        <Text style={styles.label}>Видео-гайд (необязательно)</Text>
+        {isUploadedVideo ? (
+          <View style={styles.videoChip}>
+            <Text style={styles.videoChipText}>🎬 Видео-файл загружен</Text>
+            <View style={{ flexDirection: 'row', gap: 14 }}>
+              <TouchableOpacity onPress={handleUploadVideo} disabled={saving || uploadingVideo}>
+                <Text style={styles.videoChipAction}>{uploadingVideo ? '...' : 'Заменить'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDeleteVideo} disabled={saving || uploadingVideo}>
+                <Text style={styles.videoChipRemove}>Удалить</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Ссылка на видео (YouTube, клип...)"
+              placeholderTextColor="#5B677D"
+              value={videoUrl}
+              onChangeText={setVideoUrl}
+              autoCapitalize="none"
+              keyboardType="url"
+              editable={!saving}
+            />
+            <TouchableOpacity style={styles.videoPickBtn} onPress={handleUploadVideo} disabled={saving || uploadingVideo}>
+              <Text style={styles.videoPickBtnText}>{uploadingVideo ? 'Загрузка...' : '🎬 или загрузить видеофайл'}</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         <Text style={styles.label}>Сторона</Text>
         <View style={styles.row}>
@@ -330,19 +405,42 @@ export default function EditNadeScreen() {
           ) : null}
         </View>
 
-        <Text style={styles.label}>Точка на мини-карте (необязательно)</Text>
+        <Text style={styles.label}>Траектория броска на мини-карте (необязательно)</Text>
+        {backgroundUrl ? (
+          <View style={styles.stepRow}>
+            <TouchableOpacity
+              style={[styles.stepBtn, pickStep === 'throw' && styles.stepBtnActive]}
+              onPress={() => setPickStep('throw')}
+              disabled={saving}
+            >
+              <Text style={[styles.stepBtnText, pickStep === 'throw' && styles.stepBtnTextActive]}>
+                🧍 Откуда кидают {throwPos ? '✓' : ''}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.stepBtn, pickStep === 'land' && styles.stepBtnActive]}
+              onPress={() => setPickStep('land')}
+              disabled={saving}
+            >
+              <Text style={[styles.stepBtnText, pickStep === 'land' && styles.stepBtnTextActive]}>
+                💨 Куда прилетает {landPos ? '✓' : ''}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
         <MapCanvas
           backgroundUrl={backgroundUrl}
           loadingBackground={bgLoading}
-          pickable={!!backgroundUrl}
-          pendingPos={pos}
-          onPick={setPos}
+          pickStep={backgroundUrl ? pickStep : null}
+          throwPos={throwPos}
+          landPos={landPos}
+          onPick={handlePick}
           emptyHint={mapName.trim() ? 'Для этой карты ещё нет загруженного фона (радара)' : 'Сначала укажи карту выше'}
         />
         <View style={styles.mapActionsRow}>
-          {pos ? (
-            <TouchableOpacity onPress={() => setPos(null)} disabled={saving}>
-              <Text style={styles.mapActionText}>Сбросить точку</Text>
+          {throwPos || landPos ? (
+            <TouchableOpacity onPress={() => { setThrowPos(null); setLandPos(null); setPickStep('throw'); }} disabled={saving}>
+              <Text style={styles.mapActionText}>Сбросить точки</Text>
             </TouchableOpacity>
           ) : <View />}
           <TouchableOpacity onPress={handleUploadBackground} disabled={saving || uploadingBg}>
@@ -415,5 +513,26 @@ const styles = StyleSheet.create({
   addImageText: { color: '#748099', fontSize: 10, marginTop: 2 },
   mapActionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, marginBottom: 24 },
   mapActionText: { color: '#f59e0b', fontSize: 12, fontWeight: '700' },
+  videoChip: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 1, borderColor: '#f59e0b',
+    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 14,
+  },
+  videoChipText: { color: '#F8FAFC', fontSize: 13, fontWeight: '600' },
+  videoChipAction: { color: '#f59e0b', fontSize: 12, fontWeight: '700' },
+  videoChipRemove: { color: '#EF4444', fontSize: 12, fontWeight: '700' },
+  videoPickBtn: {
+    borderWidth: 1, borderColor: '#242A40', borderRadius: 10, backgroundColor: '#151827',
+    paddingVertical: 12, alignItems: 'center', marginBottom: 14,
+  },
+  videoPickBtnText: { color: '#f59e0b', fontSize: 13, fontWeight: '700' },
+  stepRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  stepBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 10,
+    borderWidth: 1, borderColor: '#242A40', backgroundColor: '#151827',
+  },
+  stepBtnActive: { borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.14)' },
+  stepBtnText: { color: '#94A3B8', fontSize: 12, fontWeight: '700' },
+  stepBtnTextActive: { color: '#f59e0b' },
   button: { marginTop: 8 },
 });
