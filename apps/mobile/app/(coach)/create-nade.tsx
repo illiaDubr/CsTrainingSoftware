@@ -1,17 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ScrollView, Image,
+  KeyboardAvoidingView, Platform, ScrollView, Image, ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { nadesService } from '../../src/services/nadesService';
 import { showAlert } from '../../src/utils/alert';
 import { GradientButton } from '../../src/components/ui/GradientButton';
-import { CATEGORY_META, CATEGORY_ORDER, NADE_TYPE_META, NADE_TYPE_ORDER, SIDE_META } from '../../src/components/nades/nadeMeta';
-import { NadeCategory, NadeSide, NadeType } from '../../src/types';
+import { MapCanvas } from '../../src/components/nades/MapCanvas';
+import {
+  CATEGORY_META, CATEGORY_ORDER, IMAGE_TYPE_META, IMAGE_TYPE_ORDER,
+  NADE_TYPE_META, NADE_TYPE_ORDER, SIDE_META,
+} from '../../src/components/nades/nadeMeta';
+import { NadeCategory, NadeImageType, NadeSide, NadeType } from '../../src/types';
 
 const MAX_IMAGES = 6;
+const DEFAULT_TYPE_ORDER: NadeImageType[] = ['position', 'aim', 'result', 'other', 'other', 'other'];
+
+interface ImageItem { uri: string; type: NadeImageType }
 
 export default function CreateNadeScreen() {
   const router = useRouter();
@@ -20,11 +27,32 @@ export default function CreateNadeScreen() {
   const [mapName, setMapName] = useState(map ? decodeURIComponent(map) : '');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [side, setSide] = useState<NadeSide>('T');
   const [category, setCategory] = useState<NadeCategory>('base');
   const [nadeType, setNadeType] = useState<NadeType>('smoke');
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<ImageItem[]>([]);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+  const [bgLoading, setBgLoading] = useState(false);
+  const [uploadingBg, setUploadingBg] = useState(false);
+
+  useEffect(() => {
+    const trimmed = mapName.trim();
+    if (!trimmed || !groupId) {
+      setBackgroundUrl(null);
+      return;
+    }
+    let cancelled = false;
+    setBgLoading(true);
+    nadesService.getBackground(Number(groupId), trimmed)
+      .then((bg) => { if (!cancelled) setBackgroundUrl(bg?.image_url ?? null); })
+      .catch(() => { if (!cancelled) setBackgroundUrl(null); })
+      .finally(() => { if (!cancelled) setBgLoading(false); });
+    return () => { cancelled = true; };
+  }, [mapName, groupId]);
 
   const pickImages = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -34,8 +62,40 @@ export default function CreateNadeScreen() {
       quality: 0.8,
     });
     if (!result.canceled) {
-      const uris = result.assets.map(a => a.uri);
-      setImages(prev => [...prev, ...uris].slice(0, MAX_IMAGES));
+      setImages(prev => {
+        const added = result.assets.map((a, i) => ({
+          uri: a.uri,
+          type: DEFAULT_TYPE_ORDER[Math.min(prev.length + i, DEFAULT_TYPE_ORDER.length - 1)],
+        }));
+        return [...prev, ...added].slice(0, MAX_IMAGES);
+      });
+    }
+  };
+
+  const cycleImageType = (index: number) => {
+    setImages(prev => prev.map((img, i) => {
+      if (i !== index) return img;
+      const currentIdx = IMAGE_TYPE_ORDER.indexOf(img.type);
+      const next = IMAGE_TYPE_ORDER[(currentIdx + 1) % IMAGE_TYPE_ORDER.length];
+      return { ...img, type: next };
+    }));
+  };
+
+  const handleUploadBackground = async () => {
+    if (!mapName.trim()) {
+      showAlert('Сначала укажи карту', 'Введи название карты выше, потом можно будет загрузить радар');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 });
+    if (result.canceled || !result.assets[0]) return;
+    setUploadingBg(true);
+    try {
+      const bg = await nadesService.setBackground(Number(groupId), mapName.trim(), result.assets[0].uri);
+      setBackgroundUrl(bg.image_url);
+    } catch {
+      showAlert('Ошибка', 'Не удалось загрузить фон карты');
+    } finally {
+      setUploadingBg(false);
     }
   };
 
@@ -63,6 +123,9 @@ export default function CreateNadeScreen() {
         nade_type: nadeType,
         title: title.trim(),
         description: description.trim() || undefined,
+        video_url: videoUrl.trim() || undefined,
+        pos_x: pos?.x,
+        pos_y: pos?.y,
       }, images);
       router.back();
     } catch {
@@ -86,7 +149,7 @@ export default function CreateNadeScreen() {
           placeholder="Карта (Mirage, Inferno...)"
           placeholderTextColor="#5B677D"
           value={mapName}
-          onChangeText={setMapName}
+          onChangeText={(v) => { setMapName(v); setPos(null); }}
           editable={!loading}
         />
 
@@ -107,6 +170,17 @@ export default function CreateNadeScreen() {
           onChangeText={setDescription}
           multiline
           numberOfLines={3}
+          editable={!loading}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Ссылка на видео-гайд (YouTube, клип...) — необязательно"
+          placeholderTextColor="#5B677D"
+          value={videoUrl}
+          onChangeText={setVideoUrl}
+          autoCapitalize="none"
+          keyboardType="url"
           editable={!loading}
         />
 
@@ -160,16 +234,20 @@ export default function CreateNadeScreen() {
 
         {/* Скриншоты */}
         <Text style={styles.label}>Скриншоты ({images.length}/{MAX_IMAGES})</Text>
+        <Text style={styles.imagesHint}>Нажми на бейдж под фото, чтобы поменять тип: позиция → прицел → результат → другое</Text>
         <View style={styles.imagesRow}>
-          {images.map((uri, i) => (
+          {images.map((img, i) => (
             <View key={i} style={styles.imageWrap}>
-              <Image source={{ uri }} style={styles.imagePreview} />
+              <Image source={{ uri: img.uri }} style={styles.imagePreview} />
               <TouchableOpacity
                 style={styles.imageRemove}
                 onPress={() => setImages(prev => prev.filter((_, j) => j !== i))}
                 disabled={loading}
               >
                 <Text style={styles.imageRemoveText}>✕</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.imageTypeBadge} onPress={() => cycleImageType(i)} disabled={loading}>
+                <Text style={styles.imageTypeBadgeText}>{IMAGE_TYPE_META[img.type].icon} {IMAGE_TYPE_META[img.type].label}</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -180,7 +258,31 @@ export default function CreateNadeScreen() {
             </TouchableOpacity>
           ) : null}
         </View>
-        <Text style={styles.imagesHint}>Позиция → прицел → результат. Первый скрин — обложка карточки</Text>
+
+        {/* Точка на мини-карте */}
+        <Text style={styles.label}>Точка на мини-карте (необязательно)</Text>
+        <MapCanvas
+          backgroundUrl={backgroundUrl}
+          loadingBackground={bgLoading}
+          pickable={!!backgroundUrl}
+          pendingPos={pos}
+          onPick={setPos}
+          emptyHint={mapName.trim() ? 'Для этой карты ещё нет загруженного фона (радара)' : 'Сначала укажи карту выше'}
+        />
+        <View style={styles.mapActionsRow}>
+          {pos ? (
+            <TouchableOpacity onPress={() => setPos(null)} disabled={loading}>
+              <Text style={styles.mapActionText}>Сбросить точку</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity onPress={handleUploadBackground} disabled={loading || uploadingBg}>
+            {uploadingBg ? (
+              <ActivityIndicator size="small" color="#f59e0b" />
+            ) : (
+              <Text style={styles.mapActionText}>{backgroundUrl ? '🔄 Заменить фон карты' : '📷 Загрузить фон карты'}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
         <GradientButton
           title="Загрузить раскидку"
@@ -218,20 +320,27 @@ const styles = StyleSheet.create({
   },
   catTitle: { color: '#F8FAFC', fontSize: 14, fontWeight: '700', marginBottom: 4 },
   catHint: { color: '#748099', fontSize: 12, lineHeight: 16 },
-  imagesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
+  imagesHint: { color: '#5B677D', fontSize: 11, marginBottom: 10 },
+  imagesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
   imageWrap: { position: 'relative' },
-  imagePreview: { width: 96, height: 60, borderRadius: 8, backgroundColor: '#10131E' },
+  imagePreview: { width: 104, height: 66, borderRadius: 8, backgroundColor: '#10131E' },
   imageRemove: {
     position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: 10,
     backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center',
   },
   imageRemoveText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  imageTypeBadge: {
+    position: 'absolute', bottom: 3, left: 3, right: 3,
+    backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 5, paddingVertical: 2, alignItems: 'center',
+  },
+  imageTypeBadgeText: { color: '#f59e0b', fontSize: 9, fontWeight: '700' },
   addImageBtn: {
-    width: 96, height: 60, borderRadius: 8, borderWidth: 1, borderStyle: 'dashed',
+    width: 104, height: 66, borderRadius: 8, borderWidth: 1, borderStyle: 'dashed',
     borderColor: '#3A4358', justifyContent: 'center', alignItems: 'center', backgroundColor: '#10131E',
   },
   addImageIcon: { fontSize: 16 },
   addImageText: { color: '#748099', fontSize: 10, marginTop: 2 },
-  imagesHint: { color: '#5B677D', fontSize: 11, marginBottom: 20 },
+  mapActionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, marginBottom: 24 },
+  mapActionText: { color: '#f59e0b', fontSize: 12, fontWeight: '700' },
   button: { marginTop: 8 },
 });

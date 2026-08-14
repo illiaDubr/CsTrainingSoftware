@@ -118,16 +118,19 @@ export interface Routine {
 export type NadeSide = 'T' | 'CT';
 export type NadeCategory = 'base' | 'default' | 'extra';
 export type NadeType = 'smoke' | 'flash' | 'molotov' | 'he';
+export type NadeImageType = 'position' | 'aim' | 'result' | 'other';
 
 export interface NadeImage {
   id: number;
   nade_id: number;
   image_url: string;
+  image_type: NadeImageType;
   sort_order: number;
 }
 
 export interface Nade {
   id: number;
+  group_id: number;
   coach_id: number;
   map_name: string;
   side: NadeSide;
@@ -135,6 +138,9 @@ export interface Nade {
   nade_type: NadeType;
   title: string;
   description?: string;
+  video_url?: string | null;
+  pos_x?: number | null;
+  pos_y?: number | null;
   created_at: string;
   images: NadeImage[];
 }
@@ -142,6 +148,14 @@ export interface Nade {
 export interface NadeMapSummary {
   map_name: string;
   count: number;
+}
+
+export interface MapBackground {
+  id: number;
+  group_id: number;
+  map_name: string;
+  coach_id: number;
+  image_url: string;
 }
 
 // --- Матчи ---

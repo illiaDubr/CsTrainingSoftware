@@ -22,6 +22,7 @@ export default function GroupNadesMapScreen() {
       <NadesByMapView
         groupId={Number(id)}
         mapName={mapName}
+        canManage={canManage}
         onEdit={canManage ? (nade) => router.push(`${pathPrefix}/edit-nade?groupId=${id}&nadeId=${nade.id}&map=${encodeURIComponent(mapName)}` as any) : undefined}
         onDelete={canManage ? (nade, reload) => {
           showConfirm('Удалить раскидку?', nade.title, async () => {

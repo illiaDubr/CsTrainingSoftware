@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, Modal, TouchableOpacity, Image,
+  View, Text, StyleSheet, Modal, TouchableOpacity, Linking,
   ScrollView, useWindowDimensions,
 } from 'react-native';
 import { Nade } from '../../types';
 import { nadeImageUrl } from '../../services/nadesService';
-import { CATEGORY_META, NADE_TYPE_META, SIDE_META } from './nadeMeta';
+import { ImageZoomView } from './ImageZoomView';
+import { CATEGORY_META, IMAGE_TYPE_META, NADE_TYPE_META, SIDE_META } from './nadeMeta';
 
 interface Props {
   visible: boolean;
@@ -32,6 +33,7 @@ export function NadeDetailModal({ visible, nade, onClose }: Props) {
   const sideMeta = SIDE_META[nade.side];
   const catMeta = CATEGORY_META[nade.category];
   const imgWidth = Math.min(width * 0.96, MAX_MODAL_WIDTH);
+  const imgHeight = imgWidth * (9 / 16);
   const total = nade.images.length;
 
   const goTo = (i: number) => {
@@ -67,6 +69,16 @@ export function NadeDetailModal({ visible, nade, onClose }: Props) {
               </TouchableOpacity>
             </View>
 
+            {nade.video_url ? (
+              <TouchableOpacity
+                style={styles.videoBtn}
+                onPress={() => Linking.openURL(nade.video_url!)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.videoBtnText}>▶ Смотреть видео-гайд</Text>
+              </TouchableOpacity>
+            ) : null}
+
             {/* Галерея */}
             <View style={{ width: imgWidth }}>
               <ScrollView
@@ -76,16 +88,23 @@ export function NadeDetailModal({ visible, nade, onClose }: Props) {
                 showsHorizontalScrollIndicator={false}
                 onMomentumScrollEnd={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / imgWidth))}
               >
-                {nade.images.map((img) => (
-                  <Image
-                    key={img.id}
-                    source={{ uri: nadeImageUrl(img.image_url) }}
-                    style={{ width: imgWidth, aspectRatio: 16 / 9, backgroundColor: '#10131E' }}
-                    resizeMode="contain"
-                  />
-                ))}
+                {nade.images.map((img) => {
+                  const imgTypeMeta = IMAGE_TYPE_META[img.image_type] ?? IMAGE_TYPE_META.other;
+                  return (
+                    <View key={img.id} style={{ width: imgWidth }}>
+                      <ImageZoomView
+                        source={{ uri: nadeImageUrl(img.image_url) }}
+                        width={imgWidth}
+                        height={imgHeight}
+                      />
+                      <View style={styles.imgTypeBadge}>
+                        <Text style={styles.imgTypeBadgeText}>{imgTypeMeta.icon} {imgTypeMeta.label}</Text>
+                      </View>
+                    </View>
+                  );
+                })}
                 {total === 0 ? (
-                  <View style={[styles.noImage, { width: imgWidth }]}>
+                  <View style={[styles.noImage, { width: imgWidth, height: imgHeight }]}>
                     <Text style={styles.noImageText}>{typeMeta.icon}</Text>
                   </View>
                 ) : null}
@@ -172,6 +191,17 @@ const styles = StyleSheet.create({
   metaBadgeText: { color: '#94A3B8', fontSize: 11, fontWeight: '600' },
   closeBtn: { padding: 6, marginLeft: 8 },
   closeText: { color: '#94A3B8', fontSize: 20 },
+  videoBtn: {
+    marginHorizontal: 16, marginBottom: 12, backgroundColor: 'rgba(239,68,68,0.14)',
+    borderWidth: 1, borderColor: '#EF4444', borderRadius: 10,
+    paddingVertical: 10, alignItems: 'center',
+  },
+  videoBtnText: { color: '#EF4444', fontSize: 13, fontWeight: '800' },
+  imgTypeBadge: {
+    position: 'absolute', top: 8, left: 8,
+    backgroundColor: 'rgba(0,0,0,0.65)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
+  },
+  imgTypeBadgeText: { color: '#F8FAFC', fontSize: 11, fontWeight: '700' },
   noImage: { aspectRatio: 16 / 9, justifyContent: 'center', alignItems: 'center', backgroundColor: '#10131E' },
   noImageText: { fontSize: 48, opacity: 0.4 },
   arrow: {
