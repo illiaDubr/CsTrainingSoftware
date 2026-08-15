@@ -26,18 +26,23 @@ export function MatchCard({ match, onPress, onEdit, onDelete, showAuthor }: Prop
       disabled={!onPress}
     >
       <View style={[styles.dateBox, { borderColor: meta.color, backgroundColor: meta.softColor }]}>
-        <Text style={[styles.day, { color: meta.color }]}>{date.getDate()}</Text>
+        <Text style={[styles.day, { color: meta.color }, isPast && styles.textPast]}>{date.getDate()}</Text>
         <Text style={[styles.month, { color: meta.color }]}>{date.toLocaleDateString('ru-RU', { month: 'short' })}</Text>
       </View>
       <View style={styles.content}>
         <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>{match.opponent}</Text>
+          <Text style={[styles.title, isPast && styles.textPast]} numberOfLines={1}>{match.opponent}</Text>
+          {isPast ? (
+            <View style={styles.pastBadge}>
+              <Text style={styles.pastBadgeText}>ПРОШЁЛ</Text>
+            </View>
+          ) : null}
         </View>
         <View style={styles.meta}>
           <View style={[styles.classBadge, { borderColor: meta.color }]}>
             <Text style={[styles.classBadgeText, { color: meta.color }]}>{meta.icon} {meta.label}</Text>
           </View>
-          <Text style={styles.metaText}>{timeStr}</Text>
+          <Text style={[styles.metaText, isPast && styles.textPast]}>{timeStr}</Text>
         </View>
         {match.note ? (
           <Text style={styles.note} numberOfLines={2}>{match.note}</Text>
@@ -68,6 +73,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
   cardPast: { opacity: 0.55 },
+  /** Прошедший матч — зачёркиваем, чтобы сразу было видно, что он уже сыгран */
+  textPast: { textDecorationLine: 'line-through' },
+  pastBadge: {
+    borderWidth: 1, borderColor: '#3A4358', borderRadius: 6,
+    paddingHorizontal: 6, paddingVertical: 2, marginLeft: 8,
+  },
+  pastBadgeText: { color: '#748099', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
   dateBox: {
     width: 50, height: 50, borderRadius: 12,
     borderWidth: 1, justifyContent: 'center', alignItems: 'center', marginRight: 14,

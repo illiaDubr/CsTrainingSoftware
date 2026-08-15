@@ -106,6 +106,8 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
             const isToday = dateStr === todayStr;
             const isSelected = dateStr === selectedDate;
             const hasMatch = dayMatches.length > 0;
+            // День уже прошёл — матчи на нём отмечаем как отыгранные
+            const isPastDay = dateStr < todayStr;
             const primaryMeta = hasMatch ? CLASS_META[dayMatches[0].match_class] : null;
             const labelColor = isSelected ? '#171000' : primaryMeta?.color;
 
@@ -125,6 +127,7 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
                   styles.dayNum,
                   isToday && !isSelected && styles.dayNumToday,
                   isSelected && styles.dayNumSelected,
+                  isPastDay && hasMatch && !isSelected && styles.dayNumPast,
                 ]}>
                   {day}
                 </Text>
@@ -132,7 +135,11 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
                   <Text
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    style={[styles.matchLabel, { color: labelColor }]}
+                    style={[
+                      styles.matchLabel,
+                      { color: labelColor },
+                      isPastDay && !isSelected && styles.matchLabelPast,
+                    ]}
                   >
                     {dayMatches.length > 1
                       ? `${dayMatches.length} матча`
@@ -184,6 +191,9 @@ const styles = StyleSheet.create({
   dayNumToday: { color: '#f59e0b', fontWeight: '800' },
   dayNumSelected: { color: '#171000', fontWeight: '800' },
   matchLabel: { fontSize: 9, fontWeight: '800', marginTop: 3, maxWidth: '100%', textAlign: 'center' },
+  /** Матч на прошедшем дне — зачёркнут и приглушён */
+  matchLabelPast: { textDecorationLine: 'line-through', opacity: 0.6 },
+  dayNumPast: { textDecorationLine: 'line-through', color: '#748099' },
   legend: { flexDirection: 'row', gap: 16, marginTop: 12, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   dot: { width: 7, height: 7, borderRadius: 3.5 },
