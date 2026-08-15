@@ -25,9 +25,19 @@ export function MatchCard({ match, onPress, onEdit, onDelete, showAuthor }: Prop
       onPress={onPress}
       disabled={!onPress}
     >
-      <View style={[styles.dateBox, { borderColor: meta.color, backgroundColor: meta.softColor }]}>
-        <Text style={[styles.day, { color: meta.color }, isPast && styles.textPast]}>{date.getDate()}</Text>
-        <Text style={[styles.month, { color: meta.color }]}>{date.toLocaleDateString('ru-RU', { month: 'short' })}</Text>
+      {/* У прошедшего матча плашка даты нейтрально-серая, без цвета типа матча */}
+      <View style={[
+        styles.dateBox,
+        isPast
+          ? { borderColor: '#2A3145', backgroundColor: '#171A28' }
+          : { borderColor: meta.color, backgroundColor: meta.softColor },
+      ]}>
+        <Text style={[styles.day, { color: isPast ? '#5B677D' : meta.color }, isPast && styles.textPast]}>
+          {date.getDate()}
+        </Text>
+        <Text style={[styles.month, { color: isPast ? '#5B677D' : meta.color }]}>
+          {date.toLocaleDateString('ru-RU', { month: 'short' })}
+        </Text>
       </View>
       <View style={styles.content}>
         <View style={styles.titleRow}>
@@ -39,8 +49,10 @@ export function MatchCard({ match, onPress, onEdit, onDelete, showAuthor }: Prop
           ) : null}
         </View>
         <View style={styles.meta}>
-          <View style={[styles.classBadge, { borderColor: meta.color }]}>
-            <Text style={[styles.classBadgeText, { color: meta.color }]}>{meta.icon} {meta.label}</Text>
+          <View style={[styles.classBadge, { borderColor: isPast ? '#2A3145' : meta.color }]}>
+            <Text style={[styles.classBadgeText, { color: isPast ? '#5B677D' : meta.color }]}>
+              {meta.icon} {meta.label}
+            </Text>
           </View>
           <Text style={[styles.metaText, isPast && styles.textPast]}>{timeStr}</Text>
         </View>
@@ -72,7 +84,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
-  cardPast: { opacity: 0.55 },
+  cardPast: { opacity: 0.7, backgroundColor: '#131624' },
   /** Прошедший матч — зачёркиваем, чтобы сразу было видно, что он уже сыгран */
   textPast: { textDecorationLine: 'line-through' },
   pastBadge: {
