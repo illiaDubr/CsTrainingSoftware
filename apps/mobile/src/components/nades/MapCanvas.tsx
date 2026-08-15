@@ -40,9 +40,22 @@ export function MapCanvas({
 
   const height = containerWidth / ratio;
 
-  // Размеры для расчётов: пока onLayout не отработал — используем вычисленные
-  const surfaceW = surface.w || containerWidth;
-  const surfaceH = surface.h || height;
+  // Фактические размеры поверхности
+  const boxW = surface.w || containerWidth;
+  const boxH = surface.h || height;
+
+  // Прямоугольник самой картинки внутри поверхности (resizeMode="contain").
+  // Все координаты считаем относительно картинки, а не контейнера: тогда точки
+  // не смещаются, даже если высота контейнера пересчитается после загрузки пропорций.
+  const boxRatio = boxH > 0 ? boxW / boxH : 1;
+  const imgW = boxRatio > ratio ? boxH * ratio : boxW;
+  const imgH = boxRatio > ratio ? boxH : boxW / ratio;
+  const offsetX = (boxW - imgW) / 2;
+  const offsetY = (boxH - imgH) / 2;
+
+  /** Относительная координата (0..1 по картинке) → пиксели внутри поверхности */
+  const px = (x: number) => offsetX + x * imgW;
+  const py = (y: number) => offsetY + y * imgH;
 
   // Реальные пропорции картинки. onLoad на вебе часто не отдаёт размеры,
   // поэтому берём их через Image.getSize — иначе контейнер получает неверную
@@ -68,21 +81,19 @@ export function MapCanvas({
     const node = surfaceRef.current as any;
 
     if (node && typeof node.measureInWindow === 'function') {
-      node.measureInWindow((mx: number, my: number, mw: number, mh: number) => {
-        // Начало координат берём из измерения, а размеры — те же, по которым
-        // рисуются маркеры, чтобы точка легла ровно под курсор
-        const w = surfaceW || mw;
-        const h = surfaceH || mh;
-        if (!w || !h) return;
-        const x = Math.max(0, Math.min(1, (pageX - mx) / w));
-        const y = Math.max(0, Math.min(1, (pageY - my) / h));
+      node.measureInWindow((mx: number, my: number) => {
+        // Начало координат — из измерения, размеры — прямоугольник картинки:
+        // ровно то же, по чему рисуются маркеры
+        if (!imgW || !imgH) return;
+        const x = Math.max(0, Math.min(1, (pageX - mx - offsetX) / imgW));
+        const y = Math.max(0, Math.min(1, (pageY - my - offsetY) / imgH));
         onPick(pickStep, { x, y });
       });
       return;
     }
 
-    const x = Math.max(0, Math.min(1, locationX / surfaceW));
-    const y = Math.max(0, Math.min(1, locationY / surfaceH));
+    const x = Math.max(0, Math.min(1, (locationX - offsetX) / imgW));
+    const y = Math.max(0, Math.min(1, (locationY - offsetY) / imgH));
     onPick(pickStep, { x, y });
   };
 
@@ -104,13 +115,13 @@ export function MapCanvas({
   }
 
   const renderLine = (from: Point, to: Point, color: string) => {
-    const dx = (to.x - from.x) * surfaceW;
-    const dy = (to.y - from.y) * surfaceH;
+    const dx = (to.x - from.x) * imgW;
+    const dy = (to.y - from.y) * imgH;
     const length = Math.hypot(dx, dy);
     if (length < 1) return null;
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    const midX = ((from.x + to.x) / 2) * surfaceW;
-    const midY = ((from.y + to.y) / 2) * surfaceH;
+    const midX = px((from.x + to.x) / 2);
+    const midY = py((from.y + to.y) / 2);
     const arrowAngle = angle + 90;
 
     return (
@@ -134,8 +145,8 @@ export function MapCanvas({
           style={[
             styles.arrowHead,
             {
-              left: to.x * surfaceW - 6,
-              top: to.y * surfaceH - 6,
+              left: px(to.x) - 6,
+              top: py(to.y) - 6,
               borderBottomColor: color,
               transform: [{ rotate: `${arrowAngle}deg` }],
             },
@@ -174,7 +185,7 @@ export function MapCanvas({
               <TouchableOpacity
                 style={[
                   styles.throwDot,
-                  { left: n.throw_x! * surfaceW - 10, top: n.throw_y! * surfaceH - 10, borderColor: sideMeta.color },
+                  { left: px(n.throw_x!) - 10, top: py(n.throw_y!) - 10, borderColor: sideMeta.color },
                 ]}
                 onPress={() => onPinPress?.(n)}
                 disabled={!onPinPress}
@@ -187,7 +198,7 @@ export function MapCanvas({
             <TouchableOpacity
               style={[
                 styles.pin,
-                { left: n.land_x * surfaceW - 13, top: n.land_y * surfaceH - 13, borderColor: sideMeta.color },
+                { left: px(n.land_x) - 13, top: py(n.land_y) - 13, borderColor: sideMeta.color },
               ]}
               onPress={() => onPinPress?.(n)}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -203,7 +214,7 @@ export function MapCanvas({
       {throwPos ? (
         <View
           pointerEvents="none"
-          style={[styles.throwDot, styles.pendingDot, { left: throwPos.x * surfaceW - 12, top: throwPos.y * surfaceH - 12 }]}
+          style={[styles.throwDot, styles.pendingDot, { left: px(throwPos.x) - 12, top: py(throwPos.y) - 12 }]}
         >
           <Text style={styles.throwDotIcon}>🧍</Text>
         </View>
@@ -211,7 +222,7 @@ export function MapCanvas({
       {landPos ? (
         <View
           pointerEvents="none"
-          style={[styles.landDot, { left: landPos.x * surfaceW - 9, top: landPos.y * surfaceH - 9 }]}
+          style={[styles.landDot, { left: px(landPos.x) - 9, top: py(landPos.y) - 9 }]}
         />
       ) : null}
     </>
