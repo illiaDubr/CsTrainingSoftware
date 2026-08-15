@@ -1,17 +1,36 @@
 import { db } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
 
+/** true, если оба пользователя состоят хотя бы в одной общей группе (как игроки) */
+const sharesGroupAsPlayer = async (userId: number, otherId: number) => {
+  const mine = await db('group_members').where({ player_id: userId }).select('group_id');
+  if (mine.length === 0) return false;
+
+  const shared = await db('group_members')
+    .where({ player_id: otherId })
+    .whereIn('group_id', mine.map((m) => m.group_id))
+    .first();
+
+  return !!shared;
+};
+
 export const getPlayerActivity = async (playerId: number, requesterId: number, requesterRole: string) => {
   if (requesterRole === 'player' && requesterId !== playerId) {
-    throw new AppError('Access denied', 403);
+    // Игрок может смотреть активность сокомандников из своих групп
+    const teammates = await sharesGroupAsPlayer(requesterId, playerId);
+    if (!teammates) throw new AppError('Access denied', 403);
   }
 
   if (requesterRole === 'coach') {
-    const inGroup = await db('group_members')
+    // Свои группы либо группы, где он назначен помощником тренера
+    const owned = await db('group_members')
       .join('groups', 'group_members.group_id', 'groups.id')
       .where({ 'group_members.player_id': playerId, 'groups.coach_id': requesterId })
       .first();
-    if (!inGroup) throw new AppError('Access denied', 403);
+
+    const assisted = owned ? null : await sharesGroupAsPlayer(requesterId, playerId);
+
+    if (!owned && !assisted) throw new AppError('Access denied', 403);
   }
 
   // Дата на год назад

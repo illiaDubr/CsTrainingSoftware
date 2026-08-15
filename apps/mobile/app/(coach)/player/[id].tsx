@@ -36,6 +36,9 @@ export default function CoachPlayerProfileScreen() {
   const [activity, setActivity] = useState<{ date: string; count: number }[]>([]);
   const [total, setTotal] = useState(0);
   const [personalRoutines, setPersonalRoutines] = useState<Routine[]>([]);
+  // Личную рутину видят только тренер и помощник тренера — определяем по ответу бекенда:
+  // обычному сокоманднику эндпоинт отдаёт 403, и раздел просто не показывается
+  const [canSeeRoutines, setCanSeeRoutines] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<{ day: MonthProgressDay; title: string; routineId: number } | null>(null);
 
@@ -43,11 +46,14 @@ export default function CoachPlayerProfileScreen() {
     try {
       const [data, routines] = await Promise.all([
         statsService.getPlayerActivity(Number(id)),
-        routinesService.getPlayerPersonalRoutines(Number(id)).catch(() => []),
+        routinesService.getPlayerPersonalRoutines(Number(id))
+          .then((list: Routine[]) => ({ ok: true as const, list }))
+          .catch(() => ({ ok: false as const, list: [] as Routine[] })),
       ]);
       setActivity(data.activity);
       setTotal(data.total);
-      setPersonalRoutines(routines);
+      setPersonalRoutines(routines.list);
+      setCanSeeRoutines(routines.ok);
     } catch {
       // тихо
     } finally {
@@ -104,7 +110,9 @@ export default function CoachPlayerProfileScreen() {
 
       <ActivityHeatmap activity={activity} total={total} />
 
-      {/* Личная рутина игрока */}
+      {/* Личная рутина игрока — только для тренера и помощника тренера */}
+      {canSeeRoutines ? (
+        <>
       <Text style={styles.sectionTitle}>🔁 Личная рутина игрока</Text>
       {personalRoutines.length === 0 ? (
         <Text style={styles.emptyText}>Игрок пока не создал личных заданий</Text>
@@ -143,6 +151,8 @@ export default function CoachPlayerProfileScreen() {
           </View>
         ))
       )}
+        </>
+      ) : null}
 
       <DayDetailModal
         visible={!!selectedDay}
@@ -150,7 +160,7 @@ export default function CoachPlayerProfileScreen() {
         routineTitle={selectedDay?.title || ''}
         playerName={username}
         onClose={() => setSelectedDay(null)}
-        onSetStatus={handleOverride}
+        onSetStatus={canSeeRoutines ? handleOverride : undefined}
       />
     </ScrollView>
   );
