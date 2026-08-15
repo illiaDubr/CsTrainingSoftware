@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { groupsService } from '../../../../src/services/groupsService';
 import { tasksService } from '../../../../src/services/tasksService';
-import { trainingsService } from '../../../../src/services/trainingsService';
-import { materialsService } from '../../../../src/services/materialsService';
+// Разделы «Тренировки» и «Материалы» временно скрыты — см. комментарии ниже
+// import { trainingsService } from '../../../../src/services/trainingsService';
+// import { materialsService } from '../../../../src/services/materialsService';
 import { routinesService } from '../../../../src/services/routinesService';
 import { matchesService } from '../../../../src/services/matchesService';
 import { nadesService } from '../../../../src/services/nadesService';
@@ -17,6 +18,7 @@ export default function CoachGroupScreen() {
   const router = useRouter();
 
   const [groupName, setGroupName] = useState('');
+  // trainings / materials временно не используются, но оставлены в стейте под будущее возвращение разделов
   const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, members: 0, matches: 0, nades: 0 });
   const [activeMap, setActiveMap] = useState<MapOfDay | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,11 +26,11 @@ export default function CoachGroupScreen() {
 
   const loadData = async () => {
     try {
-      const [group, taskList, trainingList, materialList, routineList, matchList, nadeMaps, map] = await Promise.all([
+      const [group, taskList, routineList, matchList, nadeMaps, map] = await Promise.all([
         groupsService.getGroupById(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
-        trainingsService.getTrainingsByGroup(Number(id)),
-        materialsService.getMaterialsByGroup(Number(id)),
+        // trainingsService.getTrainingsByGroup(Number(id)),
+        // materialsService.getMaterialsByGroup(Number(id)),
         routinesService.getRoutinesByGroup(Number(id)),
         matchesService.getMatchesByGroup(Number(id)).catch(() => []),
         nadesService.getMaps(Number(id)).catch(() => []),
@@ -38,8 +40,10 @@ export default function CoachGroupScreen() {
       setCounts({
         routines: routineList.length,
         tasks: taskList.length,
-        trainings: trainingList.length,
-        materials: materialList.length,
+        // trainings: trainingList.length,
+        // materials: materialList.length,
+        trainings: 0,
+        materials: 0,
         members: group.members?.length ?? 0,
         matches: matchList.length,
         nades: nadeMaps.length,
@@ -89,8 +93,9 @@ export default function CoachGroupScreen() {
     { key: 'nades', label: 'Раскидки', icon: '💣', count: counts.nades, hint: 'Гранаты по картам', route: `/(coach)/group/${id}/nades` },
     { key: 'routines', label: 'Рутина', icon: '🔁', count: counts.routines, hint: 'Ежедневные задания', route: `/(coach)/group/${id}/routines` },
     { key: 'tasks', label: 'Задачи', icon: '📋', count: counts.tasks, hint: 'Разовые задачи', route: `/(coach)/group/${id}/tasks` },
-    { key: 'trainings', label: 'Тренировки', icon: '🎯', count: counts.trainings, hint: 'Расписание', route: `/(coach)/group/${id}/trainings` },
-    { key: 'materials', label: 'Материалы', icon: '📚', count: counts.materials, hint: 'Обучение', route: `/(coach)/group/${id}/materials` },
+    // Временно скрыто — вернуть, раскомментировав строки ниже (экраны и API на месте):
+    // { key: 'trainings', label: 'Тренировки', icon: '🎯', count: counts.trainings, hint: 'Расписание', route: `/(coach)/group/${id}/trainings` },
+    // { key: 'materials', label: 'Материалы', icon: '📚', count: counts.materials, hint: 'Обучение', route: `/(coach)/group/${id}/materials` },
     { key: 'members', label: 'Игроки', icon: '👥', count: counts.members, hint: 'Состав группы', route: `/(coach)/group/${id}/members` },
   ];
 
