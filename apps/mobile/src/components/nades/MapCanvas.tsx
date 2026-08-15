@@ -33,12 +33,16 @@ export function MapCanvas({
 }: Props) {
   const [ratio, setRatio] = useState(DEFAULT_RATIO);
   const [containerWidth, setContainerWidth] = useState(maxWidth);
-  const layoutRef = useRef({ width: maxWidth, height: maxWidth });
-  // Поверхность карты — по ней измеряем реальные координаты тапа
+  // Фактические размеры поверхности карты. И тап, и маркеры считаются по ним —
+  // иначе точка сохраняется в одной системе координат, а рисуется в другой
+  const [surface, setSurface] = useState({ w: maxWidth, h: maxWidth });
   const surfaceRef = useRef<View>(null);
 
   const height = containerWidth / ratio;
-  layoutRef.current = { width: containerWidth, height };
+
+  // Размеры для расчётов: пока onLayout не отработал — используем вычисленные
+  const surfaceW = surface.w || containerWidth;
+  const surfaceH = surface.h || height;
 
   // Реальные пропорции картинки. onLoad на вебе часто не отдаёт размеры,
   // поэтому берём их через Image.getSize — иначе контейнер получает неверную
@@ -65,17 +69,20 @@ export function MapCanvas({
 
     if (node && typeof node.measureInWindow === 'function') {
       node.measureInWindow((mx: number, my: number, mw: number, mh: number) => {
-        if (!mw || !mh) return;
-        const x = Math.max(0, Math.min(1, (pageX - mx) / mw));
-        const y = Math.max(0, Math.min(1, (pageY - my) / mh));
+        // Начало координат берём из измерения, а размеры — те же, по которым
+        // рисуются маркеры, чтобы точка легла ровно под курсор
+        const w = surfaceW || mw;
+        const h = surfaceH || mh;
+        if (!w || !h) return;
+        const x = Math.max(0, Math.min(1, (pageX - mx) / w));
+        const y = Math.max(0, Math.min(1, (pageY - my) / h));
         onPick(pickStep, { x, y });
       });
       return;
     }
 
-    const { width: w, height: h } = layoutRef.current;
-    const x = Math.max(0, Math.min(1, locationX / w));
-    const y = Math.max(0, Math.min(1, locationY / h));
+    const x = Math.max(0, Math.min(1, locationX / surfaceW));
+    const y = Math.max(0, Math.min(1, locationY / surfaceH));
     onPick(pickStep, { x, y });
   };
 
@@ -97,13 +104,13 @@ export function MapCanvas({
   }
 
   const renderLine = (from: Point, to: Point, color: string) => {
-    const dx = (to.x - from.x) * containerWidth;
-    const dy = (to.y - from.y) * height;
+    const dx = (to.x - from.x) * surfaceW;
+    const dy = (to.y - from.y) * surfaceH;
     const length = Math.hypot(dx, dy);
     if (length < 1) return null;
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    const midX = ((from.x + to.x) / 2) * containerWidth;
-    const midY = ((from.y + to.y) / 2) * height;
+    const midX = ((from.x + to.x) / 2) * surfaceW;
+    const midY = ((from.y + to.y) / 2) * surfaceH;
     const arrowAngle = angle + 90;
 
     return (
@@ -127,8 +134,8 @@ export function MapCanvas({
           style={[
             styles.arrowHead,
             {
-              left: to.x * containerWidth - 6,
-              top: to.y * height - 6,
+              left: to.x * surfaceW - 6,
+              top: to.y * surfaceH - 6,
               borderBottomColor: color,
               transform: [{ rotate: `${arrowAngle}deg` }],
             },
@@ -167,7 +174,7 @@ export function MapCanvas({
               <TouchableOpacity
                 style={[
                   styles.throwDot,
-                  { left: n.throw_x! * containerWidth - 10, top: n.throw_y! * height - 10, borderColor: sideMeta.color },
+                  { left: n.throw_x! * surfaceW - 10, top: n.throw_y! * surfaceH - 10, borderColor: sideMeta.color },
                 ]}
                 onPress={() => onPinPress?.(n)}
                 disabled={!onPinPress}
@@ -180,7 +187,7 @@ export function MapCanvas({
             <TouchableOpacity
               style={[
                 styles.pin,
-                { left: n.land_x * containerWidth - 13, top: n.land_y * height - 13, borderColor: sideMeta.color },
+                { left: n.land_x * surfaceW - 13, top: n.land_y * surfaceH - 13, borderColor: sideMeta.color },
               ]}
               onPress={() => onPinPress?.(n)}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -196,7 +203,7 @@ export function MapCanvas({
       {throwPos ? (
         <View
           pointerEvents="none"
-          style={[styles.throwDot, styles.pendingDot, { left: throwPos.x * containerWidth - 12, top: throwPos.y * height - 12 }]}
+          style={[styles.throwDot, styles.pendingDot, { left: throwPos.x * surfaceW - 12, top: throwPos.y * surfaceH - 12 }]}
         >
           <Text style={styles.throwDotIcon}>🧍</Text>
         </View>
@@ -204,7 +211,7 @@ export function MapCanvas({
       {landPos ? (
         <View
           pointerEvents="none"
-          style={[styles.landDot, { left: landPos.x * containerWidth - 9, top: landPos.y * height - 9 }]}
+          style={[styles.landDot, { left: landPos.x * surfaceW - 9, top: landPos.y * surfaceH - 9 }]}
         />
       ) : null}
     </>
@@ -220,13 +227,25 @@ export function MapCanvas({
           ref={surfaceRef}
           collapsable={false}
           style={{ width: '100%', height }}
+          onLayout={(e) => {
+            const { width, height: h } = e.nativeEvent.layout;
+            setSurface((prev) => (prev.w === width && prev.h === h ? prev : { w: width, h }));
+          }}
           onStartShouldSetResponder={() => true}
           onResponderGrant={handleTap}
         >
           {renderContent()}
         </View>
       ) : (
-        <View ref={surfaceRef} collapsable={false} style={{ width: '100%', height }}>
+        <View
+          ref={surfaceRef}
+          collapsable={false}
+          style={{ width: '100%', height }}
+          onLayout={(e) => {
+            const { width, height: h } = e.nativeEvent.layout;
+            setSurface((prev) => (prev.w === width && prev.h === h ? prev : { w: width, h }));
+          }}
+        >
           {renderContent()}
         </View>
       )}
