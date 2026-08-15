@@ -19,6 +19,9 @@ export default function CreateRoutineScreen() {
   const [priority, setPriority] = useState('medium');
   const [loading, setLoading] = useState(false);
 
+  // Без groupId экран открыт из «Моей рутины» — создаём личное задание, а не групповое
+  const isPersonal = !groupId || Number.isNaN(Number(groupId));
+
   const handleCreate = async () => {
     if (!title.trim()) {
       showAlert('Ошибка', 'Введи название задания');
@@ -26,12 +29,17 @@ export default function CreateRoutineScreen() {
     }
     setLoading(true);
     try {
-      await routinesService.createRoutine({
-        group_id: Number(groupId),
+      const dto = {
         title: title.trim(),
         description: description.trim() || undefined,
         priority,
-      });
+      };
+
+      if (isPersonal) {
+        await routinesService.createPersonalRoutine(dto);
+      } else {
+        await routinesService.createRoutine({ ...dto, group_id: Number(groupId) });
+      }
       router.back();
     } catch {
       showAlert('Ошибка', 'Не удалось создать рутину');
@@ -48,7 +56,11 @@ export default function CreateRoutineScreen() {
         </TouchableOpacity>
 
         <Text style={styles.title}>Новое ежедневное задание</Text>
-        <Text style={styles.subtitle}>Будет появляться у каждого игрока каждый день</Text>
+        <Text style={styles.subtitle}>
+          {isPersonal
+            ? 'Будет появляться у тебя каждый день. Тренер сможет видеть прогресс'
+            : 'Будет появляться у каждого игрока команды каждый день'}
+        </Text>
 
         <TextInput
           style={styles.input}
