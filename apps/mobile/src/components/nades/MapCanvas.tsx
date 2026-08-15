@@ -128,12 +128,19 @@ export function MapCanvas({
           <View key={n.id} pointerEvents="box-none" style={StyleSheet.absoluteFill}>
             {hasThrow ? renderLine({ x: n.throw_x!, y: n.throw_y! }, { x: n.land_x, y: n.land_y }, sideMeta.color) : null}
             {hasThrow ? (
-              <View
-                pointerEvents="none"
-                style={[styles.throwDot, { left: n.throw_x! * containerWidth - 6, top: n.throw_y! * height - 6 }]}
+              // Точка броска кликабельна так же, как точка приземления — открывает ту же раскидку
+              <TouchableOpacity
+                style={[
+                  styles.throwDot,
+                  { left: n.throw_x! * containerWidth - 10, top: n.throw_y! * height - 10, borderColor: sideMeta.color },
+                ]}
+                onPress={() => onPinPress?.(n)}
+                disabled={!onPinPress}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                activeOpacity={0.7}
               >
                 <Text style={styles.throwDotIcon}>🧍</Text>
-              </View>
+              </TouchableOpacity>
             ) : null}
             <TouchableOpacity
               style={[
@@ -154,7 +161,7 @@ export function MapCanvas({
       {throwPos ? (
         <View
           pointerEvents="none"
-          style={[styles.throwDot, styles.pendingDot, { left: throwPos.x * containerWidth - 8, top: throwPos.y * height - 8 }]}
+          style={[styles.throwDot, styles.pendingDot, { left: throwPos.x * containerWidth - 12, top: throwPos.y * height - 12 }]}
         >
           <Text style={styles.throwDotIcon}>🧍</Text>
         </View>
@@ -214,8 +221,9 @@ const styles = StyleSheet.create({
   pinIcon: { fontSize: 12 },
   throwDot: {
     position: 'absolute', width: 20, height: 20, borderRadius: 10,
-    backgroundColor: 'rgba(148,163,184,0.9)', borderWidth: 2, borderColor: '#0B0D14',
+    backgroundColor: 'rgba(11,13,20,0.92)', borderWidth: 2, borderColor: '#0B0D14',
     justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 3, elevation: 4,
   },
   throwDotIcon: { fontSize: 10 },
   pendingDot: { width: 24, height: 24, borderRadius: 12 },
