@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View, Image, StyleSheet, TouchableOpacity, Text, ActivityIndicator, GestureResponderEvent,
 } from 'react-native';
@@ -34,13 +34,45 @@ export function MapCanvas({
   const [ratio, setRatio] = useState(DEFAULT_RATIO);
   const [containerWidth, setContainerWidth] = useState(maxWidth);
   const layoutRef = useRef({ width: maxWidth, height: maxWidth });
+  // Поверхность карты — по ней измеряем реальные координаты тапа
+  const surfaceRef = useRef<View>(null);
 
   const height = containerWidth / ratio;
   layoutRef.current = { width: containerWidth, height };
 
+  // Реальные пропорции картинки. onLoad на вебе часто не отдаёт размеры,
+  // поэтому берём их через Image.getSize — иначе контейнер получает неверную
+  // высоту, картинка вписывается с полями и точки уезжают.
+  useEffect(() => {
+    if (!backgroundUrl) return;
+    let cancelled = false;
+    Image.getSize(
+      nadeImageUrl(backgroundUrl),
+      (w, h) => { if (!cancelled && w > 0 && h > 0) setRatio(w / h); },
+      () => { /* не удалось — остаёмся на текущем соотношении */ },
+    );
+    return () => { cancelled = true; };
+  }, [backgroundUrl]);
+
   const handleTap = (e: GestureResponderEvent) => {
     if (!pickStep || !onPick) return;
-    const { locationX, locationY } = e.nativeEvent;
+
+    // pageX/pageY + измерение самой поверхности: locationX на вебе считается
+    // относительно элемента под курсором (картинки, маркера), а не контейнера,
+    // из-за чего сохранённая точка не совпадала с отрисованной
+    const { pageX, pageY, locationX, locationY } = e.nativeEvent;
+    const node = surfaceRef.current as any;
+
+    if (node && typeof node.measureInWindow === 'function') {
+      node.measureInWindow((mx: number, my: number, mw: number, mh: number) => {
+        if (!mw || !mh) return;
+        const x = Math.max(0, Math.min(1, (pageX - mx) / mw));
+        const y = Math.max(0, Math.min(1, (pageY - my) / mh));
+        onPick(pickStep, { x, y });
+      });
+      return;
+    }
+
     const { width: w, height: h } = layoutRef.current;
     const x = Math.max(0, Math.min(1, locationX / w));
     const y = Math.max(0, Math.min(1, locationY / h));
@@ -113,7 +145,10 @@ export function MapCanvas({
         style={{ width: '100%', height }}
         resizeMode="contain"
         onLoad={(e) => {
-          const { width: w, height: h } = e.nativeEvent.source;
+          // На вебе source может отсутствовать — тогда пропорции уже взяты через Image.getSize
+          const source = (e?.nativeEvent as any)?.source;
+          const w = source?.width;
+          const h = source?.height;
           if (w > 0 && h > 0) setRatio(w / h);
         }}
       />
@@ -182,6 +217,8 @@ export function MapCanvas({
     >
       {pickStep ? (
         <View
+          ref={surfaceRef}
+          collapsable={false}
           style={{ width: '100%', height }}
           onStartShouldSetResponder={() => true}
           onResponderGrant={handleTap}
@@ -189,7 +226,7 @@ export function MapCanvas({
           {renderContent()}
         </View>
       ) : (
-        <View style={{ width: '100%', height }}>
+        <View ref={surfaceRef} collapsable={false} style={{ width: '100%', height }}>
           {renderContent()}
         </View>
       )}
