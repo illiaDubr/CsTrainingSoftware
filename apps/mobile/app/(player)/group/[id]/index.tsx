@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { groupsService } from '../../../../src/services/groupsService';
 import { tasksService } from '../../../../src/services/tasksService';
 // Разделы «Тренировки» и «Материалы» временно скрыты — см. комментарии ниже
 // import { trainingsService } from '../../../../src/services/trainingsService';
@@ -20,7 +21,7 @@ export default function PlayerGroupScreen() {
   const { isAssistant, canManage, pathPrefix } = useGroupPermission(Number(id));
 
   // trainings / materials временно не используются, но оставлены в стейте под будущее возвращение разделов
-  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, matches: 0, nades: 0 });
+  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, matches: 0, nades: 0, members: 0 });
   const [routinesDone, setRoutinesDone] = useState(0);
   const [activeMap, setActiveMap] = useState<MapOfDay | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ export default function PlayerGroupScreen() {
 
   const loadData = async () => {
     try {
-      const [routineList, taskList, matchList, nadeMaps, map] = await Promise.all([
+      const [routineList, taskList, matchList, nadeMaps, map, group] = await Promise.all([
         routinesService.getRoutinesByGroup(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
         // trainingsService.getTrainingsByGroup(Number(id)),
@@ -36,6 +37,7 @@ export default function PlayerGroupScreen() {
         matchesService.getMatchesByGroup(Number(id)).catch(() => []),
         nadesService.getMaps(Number(id)).catch(() => []),
         mapsService.getActiveMap(Number(id)).catch(() => null),
+        groupsService.getGroupById(Number(id)).catch(() => null),
       ]);
       setCounts({
         routines: routineList.length,
@@ -46,6 +48,7 @@ export default function PlayerGroupScreen() {
         materials: 0,
         matches: matchList.length,
         nades: nadeMaps.length,
+        members: group?.members?.length ?? 0,
       });
       setRoutinesDone(
         (routineList as Routine[]).filter((r) => r.todayStatus === 'completed').length
@@ -103,9 +106,12 @@ export default function PlayerGroupScreen() {
     // Временно скрыто — вернуть, раскомментировав строки ниже (экраны и API на месте):
     // { key: 'trainings', label: 'Тренировки', icon: '🎯', count: counts.trainings, hint: 'Расписание', route: `/(player)/group/${id}/trainings` },
     // { key: 'materials', label: 'Материалы', icon: '📚', count: counts.materials, hint: 'Обучение', route: `/(player)/group/${id}/materials` },
-    ...(isAssistant
-      ? [{ key: 'members', label: 'Игроки', icon: '👥', count: 0, hint: 'Состав группы (помощник тренера)', route: `/(player)/group/${id}/members` }]
-      : []),
+    {
+      key: 'members', label: 'Игроки', icon: '👥',
+      count: counts.members,
+      hint: isAssistant ? 'Состав группы (помощник тренера)' : 'Состав команды',
+      route: `/(player)/group/${id}/members`,
+    },
   ];
 
   return (
