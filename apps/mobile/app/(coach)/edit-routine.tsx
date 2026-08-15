@@ -25,10 +25,15 @@ export default function EditRoutineScreen() {
   const [saving, setSaving] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
+  // Без groupId рутина личная — берём её из «Моей рутины», а не из группы
+  const isPersonal = !groupId || Number.isNaN(Number(groupId));
+
   useEffect(() => {
     const load = async () => {
       try {
-        const list: Routine[] = await routinesService.getRoutinesByGroup(Number(groupId));
+        const list: Routine[] = isPersonal
+          ? await routinesService.getMyPersonalRoutines()
+          : await routinesService.getRoutinesByGroup(Number(groupId));
         const routine = list.find((r) => r.id === Number(routineId));
         if (!routine) {
           setNotFound(true);
@@ -44,7 +49,7 @@ export default function EditRoutineScreen() {
       }
     };
     load();
-  }, [groupId, routineId]);
+  }, [groupId, routineId, isPersonal]);
 
   const handleSave = async () => {
     if (!title.trim()) {
