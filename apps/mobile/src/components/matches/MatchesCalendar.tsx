@@ -109,7 +109,10 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
             // День уже прошёл — матчи на нём отмечаем как отыгранные
             const isPastDay = dateStr < todayStr;
             const primaryMeta = hasMatch ? CLASS_META[dayMatches[0].match_class] : null;
-            const labelColor = isSelected ? '#171000' : primaryMeta?.color;
+            // Прошедшие дни не подсвечиваем цветом типа матча — только нейтральный серый
+            const labelColor = isSelected
+              ? '#171000'
+              : isPastDay ? '#5B677D' : primaryMeta?.color;
 
             return (
               <TouchableOpacity
@@ -118,7 +121,8 @@ export function MatchesCalendar({ matches, selectedDate, onSelectDate }: Props) 
                 onPress={() => onSelectDate(dateStr)}
                 style={[
                   styles.cell,
-                  hasMatch && !isSelected && { backgroundColor: primaryMeta!.softColor, borderColor: primaryMeta!.color },
+                  hasMatch && !isSelected && !isPastDay && { backgroundColor: primaryMeta!.softColor, borderColor: primaryMeta!.color },
+                  hasMatch && !isSelected && isPastDay && styles.cellPast,
                   isToday && !isSelected && styles.cellToday,
                   isSelected && styles.cellSelected,
                 ]}
@@ -191,9 +195,10 @@ const styles = StyleSheet.create({
   dayNumToday: { color: '#f59e0b', fontWeight: '800' },
   dayNumSelected: { color: '#171000', fontWeight: '800' },
   matchLabel: { fontSize: 9, fontWeight: '800', marginTop: 3, maxWidth: '100%', textAlign: 'center' },
-  /** Матч на прошедшем дне — зачёркнут и приглушён */
-  matchLabelPast: { textDecorationLine: 'line-through', opacity: 0.6 },
-  dayNumPast: { textDecorationLine: 'line-through', color: '#748099' },
+  /** Прошедший день с матчем — нейтральный серый, без цвета типа матча */
+  cellPast: { backgroundColor: '#171A28', borderColor: '#2A3145' },
+  matchLabelPast: { textDecorationLine: 'line-through', opacity: 0.75 },
+  dayNumPast: { textDecorationLine: 'line-through', color: '#5B677D' },
   legend: { flexDirection: 'row', gap: 16, marginTop: 12, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   dot: { width: 7, height: 7, borderRadius: 3.5 },
