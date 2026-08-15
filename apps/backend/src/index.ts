@@ -19,6 +19,7 @@ import statsRoutes from './routes/stats';
 import mapRoutes from './routes/maps';
 import nadeRoutes from './routes/nades';
 import matchRoutes from './routes/matches';
+import storageHealthRoutes from './routes/health/storage';
 
 const app = express();
 
@@ -31,6 +32,9 @@ app.use(morgan('dev'));
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Диагностика файлового хранилища: /health/storage
+app.use('/health', storageHealthRoutes);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
