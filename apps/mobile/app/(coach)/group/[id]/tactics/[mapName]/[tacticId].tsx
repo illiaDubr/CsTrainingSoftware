@@ -3,15 +3,15 @@ import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { MapCanvas } from '../../../../../src/components/nades/MapCanvas';
-import { NadeCard } from '../../../../../src/components/nades/NadeCard';
-import { NadeDetailModal } from '../../../../../src/components/nades/NadeDetailModal';
-import { SIDE_META } from '../../../../../src/components/nades/nadeMeta';
-import { useGroupPermission } from '../../../../../src/hooks/useGroupPermission';
-import { tacticsService } from '../../../../../src/services/tacticsService';
-import { nadesService } from '../../../../../src/services/nadesService';
-import { showAlert, showConfirm } from '../../../../../src/utils/alert';
-import { Tactic, Nade } from '../../../../../src/types';
+import { MapCanvas } from '../../../../../../src/components/nades/MapCanvas';
+import { NadeCard } from '../../../../../../src/components/nades/NadeCard';
+import { NadeDetailModal } from '../../../../../../src/components/nades/NadeDetailModal';
+import { SIDE_META } from '../../../../../../src/components/nades/nadeMeta';
+import { useGroupPermission } from '../../../../../../src/hooks/useGroupPermission';
+import { tacticsService } from '../../../../../../src/services/tacticsService';
+import { nadesService } from '../../../../../../src/services/nadesService';
+import { showAlert, showConfirm } from '../../../../../../src/utils/alert';
+import { Tactic, Nade } from '../../../../../../src/types';
 
 export default function TacticDetailScreen() {
   const { id, tacticId } = useLocalSearchParams<{ id: string; tacticId: string }>();

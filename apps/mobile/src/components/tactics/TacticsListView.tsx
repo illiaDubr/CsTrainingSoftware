@@ -11,22 +11,22 @@ import { SIDE_META } from '../nades/nadeMeta';
 
 interface Props {
   groupId: number;
+  mapName: string;
   onTacticPress: (tactic: Tactic) => void;
   onEdit?: (tactic: Tactic) => void;
   onDelete?: (tactic: Tactic, reload: () => void) => void;
   emptyHint: string;
 }
 
-export function TacticsListView({ groupId, onTacticPress, onEdit, onDelete, emptyHint }: Props) {
-  const [tactics, setTactics] = useState<Tactic[]>([]);
+export function TacticsListView({ groupId, mapName, onTacticPress, onEdit, onDelete, emptyHint }: Props) {
+  const [allTactics, setAllTactics] = useState<Tactic[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [mapFilter, setMapFilter] = useState<string | null>(null);
   const [sideFilter, setSideFilter] = useState<NadeSide | null>(null);
 
   const loadData = async () => {
     try {
-      setTactics(await tacticsService.getTacticsByGroup(groupId));
+      setAllTactics(await tacticsService.getTacticsByGroup(groupId));
     } catch {
       // тихо
     } finally {
@@ -54,11 +54,8 @@ export function TacticsListView({ groupId, onTacticPress, onEdit, onDelete, empt
     );
   }
 
-  const maps = [...new Set(tactics.map(t => t.map_name))].sort();
-  const filtered = tactics.filter(t =>
-    (!mapFilter || t.map_name === mapFilter) &&
-    (!sideFilter || t.side === sideFilter)
-  );
+  const tactics = allTactics.filter(t => t.map_name === mapName);
+  const filtered = tactics.filter(t => !sideFilter || t.side === sideFilter);
 
   return (
     <ScrollView
@@ -66,26 +63,6 @@ export function TacticsListView({ groupId, onTacticPress, onEdit, onDelete, empt
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#f59e0b" />}
     >
-      {maps.length > 1 ? (
-        <View style={styles.filterRow}>
-          <TouchableOpacity
-            style={[styles.chip, !mapFilter && styles.chipActive]}
-            onPress={() => setMapFilter(null)}
-          >
-            <Text style={[styles.chipText, !mapFilter && styles.chipTextActive]}>Все карты</Text>
-          </TouchableOpacity>
-          {maps.map(m => (
-            <TouchableOpacity
-              key={m}
-              style={[styles.chip, mapFilter === m && styles.chipActive]}
-              onPress={() => setMapFilter(mapFilter === m ? null : m)}
-            >
-              <Text style={[styles.chipText, mapFilter === m && styles.chipTextActive]}>{m}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      ) : null}
-
       {tactics.length > 0 ? (
         <View style={styles.filterRow}>
           {(Object.keys(SIDE_META) as NadeSide[]).map(s => (
