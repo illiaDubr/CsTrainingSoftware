@@ -7,7 +7,15 @@ import { nadeImageUrl } from '../../services/nadesService';
 import { NADE_TYPE_META, SIDE_META } from './nadeMeta';
 
 type Point = { x: number; y: number };
-type PickStep = 'throw' | 'land';
+type PickStep = string;
+
+export interface MapArrow {
+  id?: string | number;
+  from: Point;
+  to: Point;
+  color?: string;
+  label?: string;
+}
 
 interface Props {
   backgroundUrl: string | null;
@@ -15,8 +23,12 @@ interface Props {
   /** Гранаты с проставленными точками — рисуются как маркеры (+ линия броска, если есть обе точки) */
   nades?: Nade[];
   onPinPress?: (nade: Nade) => void;
-  /** Режим расстановки: какая точка выставляется следующим тапом. undefined/null — только просмотр */
+  /** Произвольные векторы движения (тактики/коллы) — линия + подпись, без привязки к гранате */
+  arrows?: MapArrow[];
+  /** Режим расстановки: произвольная строка-метка того, что выставляется следующим тапом. undefined/null — только просмотр */
   pickStep?: PickStep | null;
+  /** Подсказка снизу под карту в режиме расстановки; если не задана — используется дефолт для 'throw'/'land' */
+  pickHint?: string;
   throwPos?: Point | null;
   landPos?: Point | null;
   onPick?: (step: PickStep, pos: Point) => void;
@@ -28,8 +40,8 @@ const DEFAULT_RATIO = 1; // большинство радаров CS2 квадр
 const LINE_WIDTH = 3;
 
 export function MapCanvas({
-  backgroundUrl, loadingBackground, nades = [], onPinPress,
-  pickStep, throwPos, landPos, onPick, maxWidth = 700, emptyHint,
+  backgroundUrl, loadingBackground, nades = [], onPinPress, arrows = [],
+  pickStep, pickHint, throwPos, landPos, onPick, maxWidth = 700, emptyHint,
 }: Props) {
   const [ratio, setRatio] = useState(DEFAULT_RATIO);
   const [containerWidth, setContainerWidth] = useState(maxWidth);
@@ -114,7 +126,7 @@ export function MapCanvas({
     );
   }
 
-  const renderLine = (from: Point, to: Point, color: string) => {
+  const renderLine = (from: Point, to: Point, color: string, label?: string) => {
     const dx = (to.x - from.x) * imgW;
     const dy = (to.y - from.y) * imgH;
     const length = Math.hypot(dx, dy);
@@ -140,6 +152,11 @@ export function MapCanvas({
             transform: [{ rotate: `${angle}deg` }],
           }}
         />
+        {label ? (
+          <View pointerEvents="none" style={[styles.arrowLabel, { left: midX, top: midY, borderColor: color }]}>
+            <Text style={styles.arrowLabelText}>{label}</Text>
+          </View>
+        ) : null}
         <View
           pointerEvents="none"
           style={[
@@ -170,6 +187,17 @@ export function MapCanvas({
           if (w > 0 && h > 0) setRatio(w / h);
         }}
       />
+
+      {/* Произвольные векторы движения (тактики/коллы) */}
+      {arrows.map((a, i) => {
+        const color = a.color || '#3B82F6';
+        return (
+          <View key={a.id ?? i} pointerEvents="none" style={StyleSheet.absoluteFill}>
+            {renderLine(a.from, a.to, color, a.label)}
+            <View style={[styles.arrowStartDot, { left: px(a.from.x) - 6, top: py(a.from.y) - 6, backgroundColor: color }]} />
+          </View>
+        );
+      })}
 
       {/* Маркеры существующих раскидок (режим просмотра) */}
       {nades.map((n) => {
@@ -263,7 +291,12 @@ export function MapCanvas({
 
       {pickStep ? (
         <Text style={styles.pickHint}>
-          {pickStep === 'throw' ? 'Нажми на карту — отметь, откуда кидают 🧍' : 'Нажми на карту — отметь, куда прилетает 💨'}
+          {pickHint
+            ?? (pickStep === 'throw'
+              ? 'Нажми на карту — отметь, откуда кидают 🧍'
+              : pickStep === 'land'
+                ? 'Нажми на карту — отметь, куда прилетает 💨'
+                : 'Нажми на карту, чтобы поставить точку')}
         </Text>
       ) : null}
     </View>
@@ -303,5 +336,15 @@ const styles = StyleSheet.create({
     borderLeftWidth: 6, borderRightWidth: 6, borderBottomWidth: 10,
     borderLeftColor: 'transparent', borderRightColor: 'transparent',
   },
+  arrowStartDot: {
+    position: 'absolute', width: 12, height: 12, borderRadius: 6,
+    borderWidth: 2, borderColor: '#0B0D14',
+  },
+  arrowLabel: {
+    position: 'absolute', marginLeft: -40, marginTop: -10, width: 80,
+    backgroundColor: 'rgba(11,13,20,0.85)', borderWidth: 1, borderRadius: 6,
+    paddingHorizontal: 4, paddingVertical: 2,
+  },
+  arrowLabelText: { color: '#F8FAFC', fontSize: 9, fontWeight: '700', textAlign: 'center' },
   pickHint: { color: '#748099', fontSize: 11, textAlign: 'center', marginTop: 8 },
 });

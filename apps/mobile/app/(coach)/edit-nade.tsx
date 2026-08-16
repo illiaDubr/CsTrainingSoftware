@@ -161,7 +161,7 @@ export default function EditNadeScreen() {
     }
   };
 
-  const handlePick = (step: 'throw' | 'land', p: { x: number; y: number }) => {
+  const handlePick = (step: string, p: { x: number; y: number }) => {
     if (step === 'throw') {
       setThrowPos(p);
       if (!landPos) setPickStep('land');

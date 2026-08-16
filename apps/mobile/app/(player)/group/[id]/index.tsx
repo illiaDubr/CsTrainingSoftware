@@ -9,6 +9,7 @@ import { tasksService } from '../../../../src/services/tasksService';
 import { routinesService } from '../../../../src/services/routinesService';
 import { matchesService } from '../../../../src/services/matchesService';
 import { nadesService } from '../../../../src/services/nadesService';
+import { tacticsService } from '../../../../src/services/tacticsService';
 import { mapsService, MapOfDay } from '../../../../src/services/mapsService';
 import { MapOfDayBanner } from '../../../../src/components/ui/MapOfDayBanner';
 import { showAlert, showConfirm } from '../../../../src/utils/alert';
@@ -21,7 +22,7 @@ export default function PlayerGroupScreen() {
   const { isAssistant, canManage, pathPrefix } = useGroupPermission(Number(id));
 
   // trainings / materials временно не используются, но оставлены в стейте под будущее возвращение разделов
-  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, matches: 0, nades: 0, members: 0 });
+  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, matches: 0, nades: 0, tactics: 0, members: 0 });
   const [routinesDone, setRoutinesDone] = useState(0);
   const [activeMap, setActiveMap] = useState<MapOfDay | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,13 +30,14 @@ export default function PlayerGroupScreen() {
 
   const loadData = async () => {
     try {
-      const [routineList, taskList, matchList, nadeMaps, map, group] = await Promise.all([
+      const [routineList, taskList, matchList, nadeMaps, tacticList, map, group] = await Promise.all([
         routinesService.getRoutinesByGroup(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
         // trainingsService.getTrainingsByGroup(Number(id)),
         // materialsService.getMaterialsByGroup(Number(id)),
         matchesService.getMatchesByGroup(Number(id)).catch(() => []),
         nadesService.getMaps(Number(id)).catch(() => []),
+        tacticsService.getTacticsByGroup(Number(id)).catch(() => []),
         mapsService.getActiveMap(Number(id)).catch(() => null),
         groupsService.getGroupById(Number(id)).catch(() => null),
       ]);
@@ -48,6 +50,7 @@ export default function PlayerGroupScreen() {
         materials: 0,
         matches: matchList.length,
         nades: nadeMaps.length,
+        tactics: tacticList.length,
         members: group?.members?.length ?? 0,
       });
       setRoutinesDone(
@@ -96,6 +99,7 @@ export default function PlayerGroupScreen() {
   const TILES = [
     { key: 'matches', label: 'Календарь матчей', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(player)/group/${id}/matches` },
     { key: 'nades', label: 'Раскидки', icon: '💣', count: counts.nades, hint: 'Гранаты по картам', route: `/(player)/group/${id}/nades` },
+    { key: 'tactics', label: 'Тактики', icon: '🧠', count: counts.tactics, hint: 'Коллы на раунд', route: `/(player)/group/${id}/tactics` },
     {
       key: 'routines', label: 'Рутина', icon: '🔁',
       count: counts.routines,
