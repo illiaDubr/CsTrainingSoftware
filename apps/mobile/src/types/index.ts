@@ -160,6 +160,30 @@ export interface MapBackground {
   image_url: string;
 }
 
+// --- Тактики / коллы ---
+export interface TacticArrow {
+  id?: string | number;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  color?: string;
+  label?: string;
+}
+
+export interface Tactic {
+  id: number;
+  group_id: number;
+  coach_id: number;
+  title: string;
+  map_name: string;
+  side: NadeSide;
+  description?: string | null;
+  movement_arrows: TacticArrow[];
+  created_at: string;
+  updated_at?: string;
+  nades: Nade[];
+  nade_count?: number;
+}
+
 // --- Матчи ---
 export type MatchClass = 'esea' | 'other';
 

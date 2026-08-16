@@ -9,6 +9,7 @@ import { tasksService } from '../../../../src/services/tasksService';
 import { routinesService } from '../../../../src/services/routinesService';
 import { matchesService } from '../../../../src/services/matchesService';
 import { nadesService } from '../../../../src/services/nadesService';
+import { tacticsService } from '../../../../src/services/tacticsService';
 import { mapsService, MapOfDay } from '../../../../src/services/mapsService';
 import { MapOfDayBanner } from '../../../../src/components/ui/MapOfDayBanner';
 import { showAlert, showConfirm } from '../../../../src/utils/alert';
@@ -19,14 +20,14 @@ export default function CoachGroupScreen() {
 
   const [groupName, setGroupName] = useState('');
   // trainings / materials временно не используются, но оставлены в стейте под будущее возвращение разделов
-  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, members: 0, matches: 0, nades: 0 });
+  const [counts, setCounts] = useState({ routines: 0, tasks: 0, trainings: 0, materials: 0, members: 0, matches: 0, nades: 0, tactics: 0 });
   const [activeMap, setActiveMap] = useState<MapOfDay | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
-      const [group, taskList, routineList, matchList, nadeMaps, map] = await Promise.all([
+      const [group, taskList, routineList, matchList, nadeMaps, tacticList, map] = await Promise.all([
         groupsService.getGroupById(Number(id)),
         tasksService.getTasksByGroup(Number(id)),
         // trainingsService.getTrainingsByGroup(Number(id)),
@@ -34,6 +35,7 @@ export default function CoachGroupScreen() {
         routinesService.getRoutinesByGroup(Number(id)),
         matchesService.getMatchesByGroup(Number(id)).catch(() => []),
         nadesService.getMaps(Number(id)).catch(() => []),
+        tacticsService.getTacticsByGroup(Number(id)).catch(() => []),
         mapsService.getActiveMap(Number(id)).catch(() => null),
       ]);
       setGroupName(group.name);
@@ -47,6 +49,7 @@ export default function CoachGroupScreen() {
         members: group.members?.length ?? 0,
         matches: matchList.length,
         nades: nadeMaps.length,
+        tactics: tacticList.length,
       });
       setActiveMap(map);
     } catch {
@@ -91,6 +94,7 @@ export default function CoachGroupScreen() {
   const TILES = [
     { key: 'matches', label: 'Календарь матчей', icon: '📅', count: counts.matches, hint: 'ESEA и другие игры', route: `/(coach)/group/${id}/matches` },
     { key: 'nades', label: 'Раскидки', icon: '💣', count: counts.nades, hint: 'Гранаты по картам', route: `/(coach)/group/${id}/nades` },
+    { key: 'tactics', label: 'Тактики', icon: '🧠', count: counts.tactics, hint: 'Коллы на раунд', route: `/(coach)/group/${id}/tactics` },
     { key: 'routines', label: 'Рутина', icon: '🔁', count: counts.routines, hint: 'Ежедневные задания', route: `/(coach)/group/${id}/routines` },
     { key: 'tasks', label: 'Задачи', icon: '📋', count: counts.tasks, hint: 'Разовые задачи', route: `/(coach)/group/${id}/tasks` },
     // Временно скрыто — вернуть, раскомментировав строки ниже (экраны и API на месте):
