@@ -17,6 +17,7 @@ export const SIDEBAR_COLLAPSED_WIDTH = 64;
 const GROUP_SECTIONS = [
   { key: 'matches', label: 'Матчи', icon: '📅' },
   { key: 'nades', label: 'Раскидки', icon: '💣' },
+  { key: 'tactics', label: 'Тактики', icon: '🧠' },
   { key: 'routines', label: 'Рутина', icon: '🔁' },
   { key: 'tasks', label: 'Задачи', icon: '📋' },
   { key: 'members', label: 'Игроки', icon: '👥' },
