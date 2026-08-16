@@ -17,12 +17,12 @@ const ARROW_COLORS = ['#3B82F6', '#22C55E', '#A78BFA', '#F59E0B', '#EC4899'];
 
 export default function CreateTacticScreen() {
   const router = useRouter();
-  const { groupId } = useLocalSearchParams<{ groupId: string }>();
+  const { groupId, map } = useLocalSearchParams<{ groupId: string; map?: string }>();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [side, setSide] = useState<NadeSide>('T');
-  const [mapName, setMapName] = useState('');
+  const [mapName, setMapName] = useState(map ? decodeURIComponent(map) : '');
   const [availableMaps, setAvailableMaps] = useState<NadeMapSummary[]>([]);
   const [mapsLoading, setMapsLoading] = useState(true);
 
