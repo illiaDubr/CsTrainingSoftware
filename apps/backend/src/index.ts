@@ -20,6 +20,7 @@ import mapRoutes from './routes/maps';
 import nadeRoutes from './routes/nades';
 import matchRoutes from './routes/matches';
 import tacticRoutes from './routes/tactics';
+import adminRoutes from './routes/admin';
 import storageHealthRoutes from './routes/health/storage';
 
 const app = express();
@@ -49,6 +50,7 @@ app.use('/api/maps', mapRoutes);
 app.use('/api/nades', nadeRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/tactics', tacticRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

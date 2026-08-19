@@ -25,6 +25,22 @@ const GROUP_SECTIONS = [
   // { key: 'materials', label: 'Материалы', icon: '📚' },
 ];
 
+/** Верхнеуровневые разделы админки */
+const ADMIN_SECTIONS = [
+  { key: 'dashboard', label: 'Дашборд', icon: '📊' },
+  { key: 'users', label: 'Пользователи', icon: '👤' },
+  { key: 'groups', label: 'Группы', icon: '👥' },
+];
+
+/** Разделы контента внутри админки — раскрываемый список, как команды у тренера */
+const ADMIN_CONTENT_SECTIONS = [
+  { key: 'nades', label: 'Раскидки', icon: '💣' },
+  { key: 'tactics', label: 'Тактики', icon: '🧠' },
+  { key: 'materials', label: 'Материалы', icon: '📚' },
+  { key: 'trainings', label: 'Тренировки', icon: '🎯' },
+  { key: 'matches', label: 'Матчи', icon: '📅' },
+];
+
 interface Props {
   /** Свёрнутый режим — только иконки (десктоп) */
   collapsed?: boolean;
@@ -41,22 +57,28 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate, showCollapseB
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
 
-  const isCoach = user?.role === 'coach' || user?.role === 'admin';
-  const prefix = isCoach ? '/(coach)' : '/(player)';
+  const isAdmin = user?.role === 'admin';
+  const isCoach = user?.role === 'coach';
+  const prefix = isAdmin ? '/(admin)' : isCoach ? '/(coach)' : '/(player)';
 
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedGroup, setExpandedGroup] = useState<number | null>(null);
+  const [contentExpanded, setContentExpanded] = useState(pathname.includes('/content/'));
 
-  // Список команд: грузим один раз и обновляем при возврате на дашборд
+  // Список команд: грузим один раз и обновляем при возврате на дашборд (не нужно админу)
   useEffect(() => {
+    if (isAdmin) {
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     groupsService.getMyGroups()
       .then((list) => { if (!cancelled) setGroups(list); })
       .catch(() => { /* тихо — сайдбар не должен ломать экран */ })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [pathname.endsWith('/dashboard')]);
+  }, [pathname.endsWith('/dashboard'), isAdmin]);
 
   // Команда, внутри которой находимся сейчас
   const activeGroupId = useMemo(() => {
@@ -82,7 +104,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate, showCollapseB
   };
 
   const isActive = (route: string) => {
-    const clean = route.replace(/^\/\((coach|player)\)/, '');
+    const clean = route.replace(/^\/\((coach|player|admin)\)/, '');
     return pathname === clean || pathname.endsWith(clean);
   };
 
@@ -118,7 +140,7 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate, showCollapseB
         {!collapsed ? (
           <View style={{ flex: 1 }}>
             <Text style={styles.brand}>Los Espada</Text>
-            <Text style={styles.brandSub}>{isCoach ? 'Тренер' : 'Игрок'}</Text>
+            <Text style={styles.brandSub}>{isAdmin ? 'Администратор' : isCoach ? 'Тренер' : 'Игрок'}</Text>
           </View>
         ) : null}
         {showCollapseButton ? (
@@ -129,6 +151,66 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate, showCollapseB
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
+        {isAdmin ? (
+          <>
+            {ADMIN_SECTIONS.map((s) => (
+              <NavRow key={s.key} icon={s.icon} label={s.label} route={`${prefix}/${s.key}`} />
+            ))}
+
+            {!collapsed ? <Text style={styles.sectionLabel}>КОНТЕНТ</Text> : <View style={styles.divider} />}
+
+            <TouchableOpacity
+              style={[styles.row, pathname.includes('/content') && styles.rowActive, collapsed && styles.rowCollapsed]}
+              onPress={() => {
+                if (collapsed) {
+                  go(`${prefix}/content`);
+                  return;
+                }
+                setContentExpanded((v) => !v);
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.rowIcon}>🗂️</Text>
+              {!collapsed ? (
+                <>
+                  <Text style={[styles.rowLabel, pathname.includes('/content') && styles.rowLabelActive]} numberOfLines={1}>
+                    Контент
+                  </Text>
+                  <Text style={styles.chevron}>{contentExpanded ? '⌄' : '›'}</Text>
+                </>
+              ) : null}
+            </TouchableOpacity>
+
+            {contentExpanded && !collapsed ? (
+              <View style={styles.subList}>
+                <TouchableOpacity
+                  style={[styles.subRow, pathname.endsWith('/content') && styles.subRowActive]}
+                  onPress={() => go(`${prefix}/content`)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.subIcon}>🧭</Text>
+                  <Text style={styles.subLabel}>Обзор</Text>
+                </TouchableOpacity>
+                {ADMIN_CONTENT_SECTIONS.map((s) => {
+                  const route = `${prefix}/content/${s.key}`;
+                  const active = pathname.includes(`/content/${s.key}`);
+                  return (
+                    <TouchableOpacity
+                      key={s.key}
+                      style={[styles.subRow, active && styles.subRowActive]}
+                      onPress={() => go(route)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.subIcon}>{s.icon}</Text>
+                      <Text style={[styles.subLabel, active && styles.subLabelActive]}>{s.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : null}
+          </>
+        ) : (
+        <>
         <NavRow icon="🏠" label="Главная" route={`${prefix}/dashboard`} />
         {!isCoach ? <NavRow icon="🔁" label="Моя рутина" route={`${prefix}/my-routines`} /> : null}
 
@@ -200,11 +282,13 @@ export function Sidebar({ collapsed, onToggleCollapse, onNavigate, showCollapseB
             );
           })
         )}
+        </>
+        )}
       </ScrollView>
 
       {/* Низ: профиль и выход */}
       <View style={styles.footer}>
-        {!isCoach ? <NavRow icon="👤" label="Профиль" route={`${prefix}/profile`} /> : null}
+        {!isAdmin && !isCoach ? <NavRow icon="👤" label="Профиль" route={`${prefix}/profile`} /> : null}
         <NavRow icon="🚪" label="Выйти" onPress={handleLogout} danger />
         {!collapsed && user ? (
           <View style={styles.userChip}>

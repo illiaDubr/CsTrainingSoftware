@@ -198,3 +198,127 @@ export interface Match {
   note?: string;
   created_at: string;
 }
+
+// --- Админка ---
+export type AdminRole = 'admin' | 'coach' | 'player';
+
+export interface AdminUser {
+  id: number;
+  email: string;
+  username: string;
+  role: AdminRole;
+  full_name?: string | null;
+  in_game_role?: string | null;
+  bio?: string | null;
+  avatar_url?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  memberOf: { id: number; name: string; is_assistant_coach: boolean }[];
+  coaches: { id: number; name: string; created_at: string }[];
+  contentCounts: {
+    nades: number; tactics: number; materials: number; trainings: number; matches: number;
+  };
+}
+
+export interface AdminGroup {
+  id: number;
+  name: string;
+  description?: string | null;
+  coach_id: number;
+  coach_username: string;
+  coach_email: string;
+  created_at: string;
+  member_count: number;
+}
+
+export interface AdminGroupMember {
+  id: number;
+  username: string;
+  email: string;
+  avatar_url?: string | null;
+  is_active: boolean;
+  is_assistant_coach: boolean;
+}
+
+export interface AdminGroupDetail extends Omit<AdminGroup, 'member_count'> {
+  updated_at?: string;
+  members: AdminGroupMember[];
+  contentCounts: {
+    nades: number; tactics: number; materials: number; trainings: number;
+    matches: number; tasks: number; routines: number;
+  };
+}
+
+export interface AdminOverview {
+  users: { total: number; active: number; inactive: number; admin: number; coach: number; player: number };
+  groups: number;
+  content: {
+    nades: number; tactics: number; materials: number; trainings: number;
+    matches: number; tasks: number; routines: number;
+  };
+  signupSeries: { date: string; count: number }[];
+  recentUsers: AdminUser[];
+  recentGroups: { id: number; name: string; created_at: string; coach_username: string }[];
+}
+
+export interface AdminNadeItem {
+  id: number;
+  title: string;
+  map_name: string;
+  side: NadeSide;
+  category: string;
+  nade_type: string;
+  group_id: number | null;
+  group_name?: string;
+  coach_username: string;
+  created_at: string;
+}
+
+export interface AdminTacticItem {
+  id: number;
+  title: string;
+  map_name: string;
+  side: NadeSide;
+  group_id: number;
+  group_name: string;
+  coach_username: string;
+  created_at: string;
+}
+
+export interface AdminMaterialItem {
+  id: number;
+  title: string;
+  type: string;
+  external_url?: string | null;
+  file_url?: string | null;
+  group_id: number;
+  group_name: string;
+  coach_username?: string;
+  created_at: string;
+}
+
+export interface AdminTrainingItem {
+  id: number;
+  title: string;
+  scheduled_at: string;
+  duration_minutes?: number | null;
+  group_id: number;
+  group_name: string;
+  coach_username?: string;
+  created_at: string;
+}
+
+export interface AdminMatchItem {
+  id: number;
+  opponent: string;
+  match_class: MatchClass;
+  scheduled_at: string;
+  group_id: number;
+  group_name: string;
+  created_by_username: string;
+  created_at: string;
+}
