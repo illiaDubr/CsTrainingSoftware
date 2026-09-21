@@ -142,11 +142,6 @@ export default function CreateNadeScreen() {
       showAlert('Ошибка', 'Введи название раскидки');
       return;
     }
-    if (images.length === 0) {
-      showAlert('Ошибка', 'Добавь хотя бы один скриншот');
-      return;
-    }
-
     setLoading(true);
     try {
       await nadesService.createNade({
@@ -303,8 +298,8 @@ export default function CreateNadeScreen() {
         ))}
 
         {/* Скриншоты */}
-        <Text style={styles.label}>Скриншоты ({images.length}/{MAX_IMAGES})</Text>
-        <Text style={styles.imagesHint}>Нажми на бейдж под фото, чтобы поменять тип: позиция → прицел → результат → другое</Text>
+        <Text style={styles.label}>Скриншоты ({images.length}/{MAX_IMAGES}) — необязательно</Text>
+        <Text style={styles.imagesHint}>Можно сохранить и без скринов — например, если всё видно на видео. Нажми на бейдж под фото, чтобы поменять тип: позиция → прицел → результат → другое</Text>
         <View style={styles.imagesRow}>
           {images.map((img, i) => (
             <View key={i} style={styles.imageWrap}>
