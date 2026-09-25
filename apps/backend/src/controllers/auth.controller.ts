@@ -95,8 +95,9 @@ export const forgotPasswordController = async (
       message: 'If an account with this email exists, a password reset link has been sent.',
     });
   } catch (err) {
-    next(err);
-  }
+  console.error('FORGOT PASSWORD ERROR:', err);
+  next(err);
+}
 };
 
 export const resetPasswordController = async (
