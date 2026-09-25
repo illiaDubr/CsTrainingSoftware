@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { sendPasswordResetEmail } from '../email/email.service';
 import { db } from '../../config/database';
 import { config } from '../../config/app';
 import { AppError } from '../../middlewares/errorHandler';
@@ -80,4 +82,71 @@ export const refresh = async (refreshToken: string) => {
   } catch {
     throw new AppError('Invalid refresh token', 401);
   }
+};
+export const forgotPassword = async (email: string) => {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const user: User = await db('users')
+    .where({ email: normalizedEmail })
+    .first();
+
+  if (!user || !user.is_active) {
+    return;
+  }
+
+  await db('password_reset_tokens')
+    .where({ user_id: user.id })
+    .whereNull('used_at')
+    .delete();
+
+  const token = crypto.randomBytes(32).toString('hex');
+
+  const tokenHash = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+
+  await db('password_reset_tokens').insert({
+    user_id: user.id,
+    token_hash: tokenHash,
+    expires_at: new Date(Date.now() + 30 * 60 * 1000),
+  });
+
+  const frontendUrl =
+    process.env.FRONTEND_URL || 'http://localhost:8081';
+
+  const resetUrl =
+    `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`;
+
+  await sendPasswordResetEmail(user.email, resetUrl);
+};
+
+export const resetPassword = async (token: string, password: string) => {
+  const tokenHash = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  await db.transaction(async (trx) => {
+    const resetToken = await trx('password_reset_tokens')
+      .where({ token_hash: tokenHash })
+      .whereNull('used_at')
+      .where('expires_at', '>', new Date())
+      .forUpdate()
+      .first();
+
+    if (!resetToken) {
+      throw new AppError('Invalid or expired reset token', 400);
+    }
+
+    await trx('users')
+      .where({ id: resetToken.user_id })
+      .update({ password_hash: passwordHash });
+
+    await trx('password_reset_tokens')
+      .where({ user_id: resetToken.user_id })
+      .delete();
+  });
 };

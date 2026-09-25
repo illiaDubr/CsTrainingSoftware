@@ -69,3 +69,65 @@ export const refreshController = async (req: Request, res: Response, next: NextF
     next(err);
   }
 };
+
+
+export const forgotPasswordController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'email is required',
+      });
+    }
+
+    await authService.forgotPassword(String(email));
+
+    // Специально одинаковый ответ независимо от того,
+    // существует такой email или нет.
+    res.json({
+      success: true,
+      message: 'If an account with this email exists, a password reset link has been sent.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resetPasswordController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'token and password are required',
+      });
+    }
+
+    if (String(password).length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters',
+      });
+    }
+
+    await authService.resetPassword(String(token), String(password));
+
+    res.json({
+      success: true,
+      message: 'Password has been reset successfully.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
