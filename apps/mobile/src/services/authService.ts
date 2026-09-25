@@ -25,6 +25,23 @@ export const authService = {
     await storage.setItem('refresh_token', refreshToken);
     return { user, accessToken };
   },
+  
+async forgotPassword(email: string) {
+  const { data } = await apiClient.post('/auth/forgot-password', {
+    email: email.trim().toLowerCase(),
+  });
+
+  return data;
+},
+
+async resetPassword(token: string, password: string) {
+  const { data } = await apiClient.post('/auth/reset-password', {
+    token,
+    password,
+  });
+
+  return data;
+},
 
   async logout() {
     await storage.removeItem('access_token');
