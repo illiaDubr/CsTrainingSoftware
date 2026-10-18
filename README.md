@@ -2,6 +2,20 @@
 
 Мобильное приложение для управления тренировками в CS2. Тренеры создают группы, назначают задачи и обучающие материалы игрокам, отслеживают прогресс выполнения.
 
+Проект написан целиком мной (full-stack: API, база данных, мобильный клиент, деплой) для CS-команды и знакомых — это рабочий инструмент для реальных тренировок, а не коммерческий продукт.
+
+---
+
+## Возможности
+
+- Три роли (`player`, `coach`, `admin`) с разграничением доступа на уровне API и экранов
+- Группы игроков, задачи с личным прогрессом каждого игрока, расписание тренировок, обучающие материалы
+- Ежедневные routine-задачи с автогенерацией прогресса на день и heatmap активности за год
+- Календарь матчей, карта дня, библиотека гранат (nades) и раздел тактик
+- Панель администратора: пользователи, группы, контент
+- Восстановление пароля по e-mail (Gmail API)
+- Деплой бэкенда на Railway, сборка мобильного клиента через EAS
+
 ---
 
 ## Стек
@@ -12,7 +26,7 @@
 | Database | PostgreSQL 16 + Knex (query builder + миграции) |
 | Auth | JWT (access + refresh tokens) + bcrypt |
 | Mobile | React Native + Expo (iOS / Android / Web) |
-| Shared types | `@cs-training/shared` |
+| Deploy | Railway (backend + PostgreSQL), EAS Build (mobile) |
 
 ---
 
@@ -25,7 +39,7 @@
 | `admin` | Управление пользователями, просмотр всех групп, назначение ролей |
 
 > Регистрация через `/api/auth/register` создаёт только `player` и `coach`.  
-> Роль `admin` назначается вручную через БД.
+> Роль `admin` создаётся скриптом `npm run seed:admin` (см. ниже).
 
 ---
 
@@ -36,62 +50,29 @@ cs-training/
 ├── apps/
 │   ├── backend/
 │   │   ├── src/
-│   │   │   ├── config/
-│   │   │   │   ├── app.ts          # Конфиг приложения (порт, jwt, db)
-│   │   │   │   └── database.ts     # Knex-подключение к PostgreSQL
+│   │   │   ├── config/        # конфиг приложения и подключение к БД
 │   │   │   ├── controllers/
-│   │   │   │   └── auth/
-│   │   │   │       └── auth.controller.ts
-│   │   │   ├── middlewares/
-│   │   │   │   ├── auth.ts         # authenticate + authorize(role)
-│   │   │   │   ├── errorHandler.ts # AppError + глобальный обработчик
-│   │   │   │   └── notFound.ts
+│   │   │   ├── middlewares/   # authenticate + authorize(role), обработчик ошибок
 │   │   │   ├── models/
-│   │   │   │   ├── user.model.ts   # User, UserRole, CreateUserDto
-│   │   │   │   └── task.model.ts   # Task, TaskProgress, TaskStatus
-│   │   │   ├── routes/
-│   │   │   │   └── auth/index.ts   # POST /register /login /refresh
-│   │   │   └── services/
-│   │   │       └── auth/
-│   │   │           └── auth.service.ts
-│   │   ├── migrations/
-│   │   │   └── 001_initial_schema.ts
-│   │   ├── uploads/
-│   │   ├── .env
-│   │   ├── knexfile.ts
-│   │   └── tsconfig.json
+│   │   │   ├── routes/        # auth, users, groups, tasks, routines, trainings,
+│   │   │   │                  # materials, stats, maps, matches, nades, tactics, admin
+│   │   │   ├── services/
+│   │   │   └── scripts/       # seedAdmin
+│   │   ├── migrations/        # 14 миграций Knex
+│   │   └── knexfile.ts
 │   │
-│   └── mobile/
-│       └── src/
-│           ├── screens/
-│           │   ├── auth/
-│           │   ├── player/
-│           │   ├── coach/
-│           │   ├── admin/
-│           │   └── shared/
-│           ├── components/
-│           │   ├── ui/
-│           │   ├── forms/
-│           │   ├── cards/
-│           │   └── layout/
-│           ├── navigation/
-│           ├── hooks/
-│           ├── store/
-│           │   ├── slices/
-│           │   └── api/
-│           └── services/
-│               └── apiClient.ts    # axios + JWT interceptors
+│   └── mobile/                # Expo + expo-router
+│       ├── app/               # экраны по ролям: (auth), (player), (coach), (admin)
+│       └── src/               # компоненты, хуки, store, API-клиент (axios + JWT interceptors)
 │
-├── packages/
-│   └── shared/
-│       └── src/index.ts            # UserRole, TaskStatus, ApiResponse...
-│
-└── docker-compose.yml              # PostgreSQL 16
+└── docker-compose.yml         # PostgreSQL 16 для локальной разработки
 ```
 
 ---
 
 ## База данных
+
+Основные таблицы (полная схема — в `apps/backend/migrations/`):
 
 ```
 users          — id, email, username, password_hash, role, avatar_url, is_active
@@ -103,9 +84,13 @@ trainings      — id, group_id, coach_id, title, description, scheduled_at, dur
 materials      — id, group_id, coach_id, title, description, file_url, external_url, type
 ```
 
+Поверх них миграциями добавлены routines, профиль игрока, карта дня, nades, матчи, тактики и токены сброса пароля.
+
 ---
 
 ## API
+
+Ниже описаны основные группы эндпоинтов. Остальные (`/api/maps`, `/api/matches`, `/api/nades`, `/api/tactics`, `/api/admin`) находятся в `apps/backend/src/routes/`.
 
 ### Auth — `/api/auth`
 
@@ -212,11 +197,16 @@ docker-compose up -d
 ### 2. Бэкенд
 ```bash
 cd apps/backend
-# Заполни .env (скопируй из .env.example)
+cp .env.example .env     # и заполни JWT_SECRET, JWT_REFRESH_SECRET
 npm install
-knex migrate:latest --knexfile knexfile.ts
+npm run migrate
 npm run dev
 # → http://localhost:3000
+```
+
+Первого администратора можно создать так:
+```bash
+ADMIN_PASSWORD=<свой пароль> npm run seed:admin
 ```
 
 ### 3. Мобильное приложение
@@ -231,21 +221,7 @@ npm start
 
 ## Переменные окружения
 
-Файл `apps/backend/.env`:
-
-```env
-PORT=3000
-NODE_ENV=development
-
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=cs_training
-DB_USER=postgres
-DB_PASSWORD=postgres
-
-JWT_SECRET=<длинная случайная строка>
-JWT_REFRESH_SECRET=<другая длинная случайная строка>
-```
+Полный список с комментариями — в `apps/backend/.env.example`. Обязательные переменные: `JWT_SECRET` и `JWT_REFRESH_SECRET` (длинные случайные строки, например `openssl rand -hex 48`); без них сервер не стартует. Для `seed:admin` нужен `ADMIN_PASSWORD`, для писем о сбросе пароля — ключи Gmail API.
 
 ---
 
@@ -262,24 +238,21 @@ JWT_REFRESH_SECRET=<другая длинная случайная строка>
 ## Прогресс разработки
 
 ### Бэкенд
-- [x] Инициализация проекта (Express + TypeScript)
-- [x] Подключение к PostgreSQL через Knex
-- [x] Миграции — полная схема БД
-- [x] Auth — register, login, refresh
+- [x] Express + TypeScript, PostgreSQL через Knex, 14 миграций
+- [x] Auth — register, login, refresh, восстановление пароля по e-mail
 - [x] JWT middleware — authenticate + authorize
-- [x] Users — профиль, управление (admin)
-- [x] Groups — CRUD, управление участниками
-- [x] Tasks — CRUD, прогресс игроков
-- [x] Trainings — расписание тренировок
-- [x] Materials — обучающие материалы
+- [x] Users, Groups, Tasks, Trainings, Materials
 - [x] Routines — daily routine с автогенерацией прогресса на день
 - [x] Stats — годовая активность (heatmap-данные из tasks + routines)
+- [x] Матчи, карта дня, nades, тактики
+- [x] Админ-эндпоинты, seed администратора
+- [x] Деплой на Railway
 
 ### Мобильное приложение
-- [x] Структура проекта (Expo SDK 54 + expo-router)
-- [x] API клиент с JWT interceptors
-- [x] Экраны авторизации (login, register)
+- [x] Expo SDK 54 + expo-router, API клиент с JWT interceptors
+- [x] Авторизация: вход, регистрация, сброс пароля
 - [x] Навигация по ролям (auto-redirect через `/users/me`)
-- [x] Экраны игрока — группы, задачи (детали + прогресс/заметка), тренировки, материалы (просмотр)
-- [x] Экраны тренера — группы, создание группы, задачи (создание/удаление/прогресс), тренировки (создание/удаление), материалы (создание/удаление), поиск и добавление игроков
-- [ ] Экраны администратора — управление пользователями
+- [x] Экраны игрока: группы, задачи с прогрессом и заметкой, тренировки, материалы, личные routines, профиль
+- [x] Экраны тренера: группы, задачи, тренировки, материалы, поиск и добавление игроков
+- [x] Календарь матчей, nades, тактики
+- [x] Экраны администратора: пользователи, группы, контент
