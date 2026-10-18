@@ -1,11 +1,19 @@
+const requireEnv = (name: string): string => {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name} (see apps/backend/.env.example)`);
+  }
+  return value;
+};
+
 export const config = {
   port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
 
   jwt: {
-    secret: process.env.JWT_SECRET || 'fallback_secret',
+    secret: requireEnv('JWT_SECRET'),
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'fallback_refresh',
+    refreshSecret: requireEnv('JWT_REFRESH_SECRET'),
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
 

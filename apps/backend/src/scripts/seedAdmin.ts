@@ -5,8 +5,8 @@ import { db } from '../config/database';
 /**
  * Создаёт (или обновляет до admin + новый пароль) пользователя-администратора.
  * Запуск: npm run seed:admin
- * Параметры — через переменные окружения, с дефолтами для локальной разработки:
- *   ADMIN_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD
+ * Параметры — через переменные окружения:
+ *   ADMIN_PASSWORD (обязательна); ADMIN_EMAIL и ADMIN_USERNAME имеют значения по умолчанию
  *
  * На Railway: railway run npm run seed:admin --service <backend>
  * (переменные окружения подхватятся из окружения сервиса — там же лежит DATABASE_URL).
@@ -14,7 +14,12 @@ import { db } from '../config/database';
 const main = async () => {
   const email = process.env.ADMIN_EMAIL || 'admin@losespada.gg';
   const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD || 'admin12345';
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!password) {
+    console.error('❌ ADMIN_PASSWORD не задан — укажи его в окружении (см. .env.example)');
+    process.exit(1);
+  }
 
   if (password.length < 6) {
     console.error('❌ ADMIN_PASSWORD должен быть не короче 6 символов');
