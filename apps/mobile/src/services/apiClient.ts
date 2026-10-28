@@ -8,6 +8,21 @@ export const apiClient = axios.create({
   timeout: 30000, // запас на холодный старт бэкенда
 });
 
+export const getApiErrorMessage = (error: unknown, fallback: string) => {
+  if (!axios.isAxiosError(error)) return fallback;
+
+  const serverMessage = error.response?.data?.message;
+  if (typeof serverMessage === 'string' && serverMessage.trim()) {
+    return serverMessage;
+  }
+
+  if (!error.response) {
+    return 'Сервер недоступний або з’єднання було перервано. Спробуйте ще раз.';
+  }
+
+  return `${fallback} (HTTP ${error.response.status})`;
+};
+
 apiClient.interceptors.request.use(async (config) => {
   const token = await storage.getItem('access_token');
   if (token) {

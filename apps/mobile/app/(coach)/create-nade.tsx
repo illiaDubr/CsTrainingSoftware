@@ -6,6 +6,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { nadesService } from '../../src/services/nadesService';
+import { getApiErrorMessage } from '../../src/services/apiClient';
 import { showAlert } from '../../src/utils/alert';
 import { GradientButton } from '../../src/components/ui/GradientButton';
 import { MapCanvas } from '../../src/components/nades/MapCanvas';
@@ -160,8 +161,8 @@ export default function CreateNadeScreen() {
         land_y: landPos?.y,
       }, images);
       router.back();
-    } catch {
-      showAlert('Ошибка', 'Не удалось загрузить раскидку');
+    } catch (error) {
+      showAlert('Ошибка', getApiErrorMessage(error, 'Не удалось загрузить раскидку'));
     } finally {
       setLoading(false);
     }
