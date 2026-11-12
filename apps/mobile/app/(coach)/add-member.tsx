@@ -26,6 +26,7 @@ export default function AddMemberScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Player[]>([]);
   const [searching, setSearching] = useState(true);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [addingId, setAddingId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -34,19 +35,21 @@ export default function AddMemberScreen() {
     // Пустой запрос — сразу грузим полный список, при вводе — с debounce
     const timeout = setTimeout(async () => {
       setSearching(true);
+      setSearchError(null);
 
       try {
-        const data = await usersService.searchPlayers(trimmed);
+        const data = await usersService.searchPlayers(Number(groupId), trimmed);
         setResults(data);
-      } catch {
+      } catch (err: any) {
         setResults([]);
+        setSearchError(err.response?.data?.message || 'Не удалось выполнить поиск игроков');
       } finally {
         setSearching(false);
       }
     }, trimmed ? 300 : 0);
 
     return () => clearTimeout(timeout);
-  }, [query]);
+  }, [query, groupId]);
 
   const handleAdd = async (player: Player) => {
     setAddingId(player.id);
@@ -116,7 +119,7 @@ export default function AddMemberScreen() {
         )}
         ListEmptyComponent={
           !searching ? (
-            <Text style={styles.emptyText}>Игроков не найдено</Text>
+            <Text style={styles.emptyText}>{searchError || 'Игроков не найдено'}</Text>
           ) : null
         }
       />

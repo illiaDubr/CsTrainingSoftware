@@ -53,8 +53,12 @@ export const searchPlayersController = async (
 ) => {
   try {
     const q = String(req.query.q ?? "").trim();
+    const groupId = Number(req.query.groupId);
+    if (!Number.isInteger(groupId) || groupId <= 0) {
+      return res.status(400).json({ success: false, message: 'groupId is required' });
+    }
 
-    const players = await usersService.searchPlayers(q);
+    const players = await usersService.searchPlayers(groupId, req.user!.userId, req.user!.role, q);
 
     res.json({
       success: true,

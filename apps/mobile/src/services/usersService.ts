@@ -11,8 +11,10 @@ export const usersService = {
     return data.data;
   },
 
-  async searchPlayers(query: string) {
-    const { data } = await apiClient.get(`/users/search/players?q=${encodeURIComponent(query)}`);
+  async searchPlayers(groupId: number, query: string) {
+    const { data } = await apiClient.get(
+      `/users/search/players?groupId=${groupId}&q=${encodeURIComponent(query)}`
+    );
     return data.data;
   },
 };

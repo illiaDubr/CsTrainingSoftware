@@ -1,5 +1,6 @@
 import { db } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
+import { assertCoachAccess } from '../groups/groupAccess';
 
 export const IN_GAME_ROLES = ['captain', 'entry', 'anchor', 'rifler', 'support'] as const;
 export type InGameRole = (typeof IN_GAME_ROLES)[number];
@@ -64,9 +65,17 @@ export const getUserById = async (id: number) => {
   return user;
 };
 
-export const searchPlayers = async (query: string) => {
+export const searchPlayers = async (groupId: number, userId: number, role: string, query: string) => {
+  await assertCoachAccess(groupId, userId, role);
+
   const qb = db('users')
     .where({ role: 'player' })
+    .whereNotExists(function () {
+      this.select(db.raw('1'))
+        .from('group_members')
+        .whereRaw('group_members.player_id = users.id')
+        .andWhere('group_members.group_id', groupId);
+    })
     .select('id', 'username', 'email', 'avatar_url', 'in_game_role')
     .orderBy('username', 'asc')
     .limit(100);

@@ -19,8 +19,8 @@ router.use(authenticate);
 router.get('/me', getMeController);
 router.patch('/me', updateMeController);
 
-// Поиск игроков — coach
-router.get('/search/players', authorize(UserRole.COACH), searchPlayersController);
+// Поиск игроков — тренер или помощник тренера указанной группы
+router.get('/search/players', searchPlayersController);
 
 // Список всех пользователей — только admin
 router.get('/', authorize(UserRole.ADMIN), getAllUsersController);
